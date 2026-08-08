@@ -210,9 +210,6 @@ function LandingPage() {
         </div>
       </section>
 
-      <footer style={{ background: '#000', padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', zIndex: 10 }}>
-        <p>Built for the AI Engineering Hackathon.</p>
-      </footer>
 
       {showModal && (
         <div className="modal-overlay">
