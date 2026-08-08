@@ -89,10 +89,14 @@ export const SYSTEM_PROMPT_FEEDBACK = `
 You are generating final structured feedback for a completed technical interview. You will be given the full transcript and the candidate's profile data. Output strictly valid JSON matching:
 
 {
+  "score": <integer from 0 to 100 representing overall technical performance>,
   "summary": "2-4 sentence honest overall verdict, referencing specific topics covered",
   "strengths": ["2-3 concrete, evidence-based points tied to specific moments in the transcript"],
   "gaps": ["2-3 specific weaknesses, plainly named, with what a stronger answer would have included"],
-  "next": ["2-3 concrete, actionable next steps, referencing specific days/topics from the interview"]
+  "next": ["2-3 concrete, actionable next steps, referencing specific days/topics from the interview"],
+  "revisionDeck": [
+    { "topic": "Brief topic name", "concept": "Specific concept the candidate needs to study" }
+  ]
 }
 
 No vague filler in any array — every entry must be traceable to something specific in the transcript. Do not soften weaknesses. Output only the JSON object, no other text.

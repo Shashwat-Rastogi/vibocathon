@@ -404,6 +404,9 @@ function CandidateSelection() {
           <div className="nav-item" onClick={() => navigate('/interviews')}>
             <span>Interviews</span>
           </div>
+          <div className="nav-item" onClick={() => navigate('/reports')}>
+            <span>Reports</span>
+          </div>
         </nav>
       </aside>
 
@@ -563,6 +566,9 @@ function InterviewHistory() {
           <div className="nav-item active">
             <span>Interviews</span>
           </div>
+          <div className="nav-item" onClick={() => navigate('/reports')}>
+            <span>Reports</span>
+          </div>
         </nav>
       </aside>
 
@@ -689,6 +695,11 @@ function Interview() {
         if (data.ragSources) setRagActivity(data.ragSources);
         if (data.done && data.feedback) {
           setFeedback(data.feedback);
+          const savedHistory = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
+          const updatedHistory = savedHistory.map(h => 
+            h.id === sessionId ? { ...h, feedback: data.feedback } : h
+          );
+          localStorage.setItem('interviewHistory', JSON.stringify(updatedHistory));
         }
       }
     } catch (err) {
@@ -746,7 +757,12 @@ function Interview() {
         
         {feedback ? (
           <div className="feedback-card">
-            <h3>Interview Completed</h3>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <h3 style={{ margin: 0 }}>Interview Completed</h3>
+              {feedback.score !== undefined && (
+                <div className="score-badge" style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '8px 16px', borderRadius: '20px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)' }}>Score: {feedback.score}/100</div>
+              )}
+            </div>
             <p className="summary"><strong>Summary:</strong> {feedback.summary}</p>
             <div className="feedback-grid">
               <div className="feedback-section">
@@ -762,6 +778,19 @@ function Interview() {
               <h4>Next Steps</h4>
               <ul>{feedback.next.map((n,i) => <li key={i}>{n}</li>)}</ul>
             </div>
+            {feedback.revisionDeck && feedback.revisionDeck.length > 0 && (
+              <div className="feedback-section revision-deck" style={{ marginTop: '24px' }}>
+                <h4 style={{ color: '#a78bfa', marginBottom: '16px' }}>Revision Deck</h4>
+                <div className="flashcard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                  {feedback.revisionDeck.map((card, i) => (
+                    <div key={i} className="flashcard glass-card" style={{ padding: '16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                      <div className="flashcard-topic" style={{ fontWeight: 'bold', color: 'white', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase' }}>{card.topic}</div>
+                      <div className="flashcard-concept" style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{card.concept}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="input-area">
@@ -788,12 +817,116 @@ function Interview() {
   );
 }
 
+function ReportsDashboard() {
+  const navigate = useNavigate();
+  const [history, setHistory] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
+
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
+    const currentUser = localStorage.getItem('interviewer_name');
+    const myHistory = saved.filter(h => h.interviewerName === currentUser && h.feedback);
+    setHistory(myHistory.reverse());
+  }, []);
+
+  return (
+    <div className="dashboard-container">
+      <aside className="dashboard-sidebar">
+        <div className="sidebar-logo">AI Cohort Agent</div>
+        <nav className="sidebar-nav">
+          <div className="nav-item" onClick={() => navigate('/')}>
+            <span>Overview</span>
+          </div>
+          <div className="nav-item" onClick={() => navigate('/candidates')}>
+            <span>Candidates</span>
+          </div>
+          <div className="nav-item" onClick={() => navigate('/interviews')}>
+            <span>Interviews</span>
+          </div>
+          <div className="nav-item active">
+            <span>Reports</span>
+          </div>
+        </nav>
+      </aside>
+
+      <main className="dashboard-main">
+        <div className="dashboard-header">
+          <div className="dashboard-title">
+            <h1>Evaluation Reports</h1>
+            <p>Detailed scores and revision decks for completed interviews.</p>
+          </div>
+        </div>
+
+        <div className="reports-list" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          {history.length > 0 ? (
+            history.map((h, i) => (
+              <RevealOnScroll key={h.id} delay={(i % 10) * 0.1}>
+                <div className="report-card glass-card" style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <h3 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '1.2rem' }}>{h.candidateName} <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 'normal' }}>({h.role})</span></h3>
+                      <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{new Date(h.timestamp).toLocaleString()}</div>
+                    </div>
+                    {h.feedback.score !== undefined && (
+                      <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '12px 24px', borderRadius: '12px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)', fontSize: '1.2rem' }}>
+                        {h.feedback.score}/100
+                      </div>
+                    )}
+                  </div>
+                  
+                  {expandedId === h.id && (
+                    <div style={{ marginTop: '24px', paddingTop: '24px', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                      <p style={{ color: 'white', marginBottom: '24px', lineHeight: '1.6' }}><strong>Summary:</strong> {h.feedback.summary}</p>
+                      
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
+                        <div>
+                          <h4 style={{ color: '#10b981', marginBottom: '12px' }}>Strengths</h4>
+                          <ul style={{ color: 'var(--text-secondary)', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {h.feedback.strengths.map((s, idx) => <li key={idx}>{s}</li>)}
+                          </ul>
+                        </div>
+                        <div>
+                          <h4 style={{ color: '#ef4444', marginBottom: '12px' }}>Gaps</h4>
+                          <ul style={{ color: 'var(--text-secondary)', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                            {h.feedback.gaps.map((g, idx) => <li key={idx}>{g}</li>)}
+                          </ul>
+                        </div>
+                      </div>
+
+                      {h.feedback.revisionDeck && h.feedback.revisionDeck.length > 0 && (
+                        <div>
+                          <h4 style={{ color: '#a78bfa', marginBottom: '16px' }}>Revision Deck</h4>
+                          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                            {h.feedback.revisionDeck.map((card, idx) => (
+                              <div key={idx} style={{ background: 'rgba(0,0,0,0.4)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                                <div style={{ fontWeight: 'bold', color: 'white', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase' }}>{card.topic}</div>
+                                <div style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5' }}>{card.concept}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </RevealOnScroll>
+            ))
+          ) : (
+            <div className="no-candidates">No reports available yet. Complete an interview to generate one.</div>
+          )}
+        </div>
+      </main>
+    </div>
+  );
+}
+
 function BackgroundWrapper({ children }) {
   const location = useLocation();
   const isHome = location.pathname === '/';
   const isCandidates = location.pathname === '/candidates';
   const isInterview = location.pathname === '/interview';
   const isInterviews = location.pathname === '/interviews';
+  const isReports = location.pathname === '/reports';
   
   return (
     <>
@@ -802,7 +935,7 @@ function BackgroundWrapper({ children }) {
           <DopaCore theme="colorful" count={12000} autoSpin={true} speedMult={1} />
         </div>
       )}
-      {(isCandidates || isInterviews) && (
+      {(isCandidates || isInterviews || isReports) && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2 }}>
           <Antigravity
             count={250}
@@ -838,6 +971,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/candidates" element={<CandidateSelection />} />
           <Route path="/interviews" element={<InterviewHistory />} />
+          <Route path="/reports" element={<ReportsDashboard />} />
           <Route path="/interview" element={<Interview />} />
         </Routes>
       </BackgroundWrapper>
