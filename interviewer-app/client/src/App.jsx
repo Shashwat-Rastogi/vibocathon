@@ -348,6 +348,7 @@ function CandidateSelection() {
           <div className="dashboard-title">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
               <div>
+                <span className="workspace-label">AI INTERVIEW WORKSPACE</span>
                 <h1>Candidates</h1>
                 <p>Select a candidate to begin their adaptive technical interview.</p>
               </div>
@@ -402,12 +403,22 @@ function CandidateSelection() {
                 onClick={() => navigate('/interview', { state: { candidate: c, persona } })} 
                 className="candidate-grid-card"
               >
+                <div className="candidate-header-row">
+                  <div className="candidate-avatar">
+                    {c.member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                  </div>
+                  <div className="candidate-status">
+                    <span className="candidate-status-dot"></span> Ready
+                  </div>
+                </div>
+                
                 <div className="candidate-info">
                   <div className="candidate-name">{c.member.name}</div>
                   <div className="candidate-role">{c.member.jobRole}</div>
                 </div>
                 <div className="candidate-stats">
-                  <span>{c.member.yearsExperience} YOE</span>
+                  <span className="experience-pill">{c.member.yearsExperience} YOE</span>
+                  <span className="start-action">Start Interview &rarr;</span>
                 </div>
               </div>
             ))
