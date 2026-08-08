@@ -72,7 +72,24 @@ const TypewriterMessage = ({ text }) => {
     <>
       {displayedText}
       <span className={displayedText.length < text.length ? 'blinking-cursor typing' : 'blinking-cursor done'}></span>
-    </>
+    </div>
+  );
+};
+
+const FormattedMessage = ({ text }) => {
+  const parts = text.split('\n\n').filter(p => p.trim());
+  if (parts.length <= 1) {
+     return <div className="actual-question"><TypewriterMessage text={text} /></div>;
+  }
+  const questionPart = parts.pop();
+  const contextPart = parts.join('\n\n');
+
+  return (
+    <div>
+      <div className="context-text"><TypewriterMessage text={contextPart} /></div>
+      <div className="question-header">QUESTION</div>
+      <div className="actual-question"><TypewriterMessage text={questionPart} /></div>
+    </div>
   );
 };
 
@@ -505,6 +522,7 @@ function Interview() {
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
   const [ragActivity, setRagActivity] = useState([]);
+  const [questionCount, setQuestionCount] = useState(1);
   const messagesEndRef = useRef(null);
   
   const initialized = useRef(false);
@@ -580,6 +598,7 @@ function Interview() {
         setMessages(prev => [...prev, { role: 'assistant', content: `Server Error: ${data.error}` }]);
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+        setQuestionCount(prev => prev + 1);
         if (data.ragSources) setRagActivity(data.ragSources);
         if (data.done && data.feedback) {
           setFeedback(data.feedback);
@@ -597,15 +616,21 @@ function Interview() {
   return (
     <div className="fullscreen-container">
       <header className="chat-header glass-card" style={{ margin: '20px 10%', borderRadius: '16px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ color: 'white' }}>Interviewing {selectedCandidate.member.name}</h2>
-          <span className="role-badge" style={{ color: '#a1a1aa' }}>{selectedCandidate.member.jobRole} • Persona: {persona.toUpperCase()}</span>
+          <div className="role-badge" style={{ color: '#94a3b8' }}>{selectedCandidate.member.jobRole}</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flex: 1, justifyContent: 'center' }}>
+          <div className="question-tracker">Question {Math.min(questionCount, 8)} / 8</div>
+          <div className="live-indicator">
+            <span className="live-dot"></span> LIVE INTERVIEW
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end' }}>
           {ragActivity.length > 0 && (
             <div className="rag-indicator">
               <span className="rag-pulse"></span>
-              <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>Brain accessed: Days {ragActivity.join(', ')}</span>
+              <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 'bold' }}>RAG</span>
             </div>
           )}
           <button onClick={() => navigate('/')} className="end-btn" style={{ color: 'white', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)' }}>End Session</button>
@@ -617,14 +642,15 @@ function Interview() {
           {messages.map((m, i) => (
             <div key={i} className={`message-wrapper ${m.role}`}>
               <div className="message">
-                {m.role === 'assistant' ? <TypewriterMessage text={m.content} /> : m.content}
+                {m.role === 'assistant' ? <FormattedMessage text={m.content} /> : m.content}
               </div>
             </div>
           ))}
           {loading && (
             <div className="message-wrapper assistant">
-              <div className="message loading-dots">
-                <span>.</span><span>.</span><span>.</span>
+              <div className="message ai-thinking">
+                AI is thinking 
+                <span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
               </div>
             </div>
           )}
@@ -651,20 +677,24 @@ function Interview() {
             </div>
           </div>
         ) : (
-          <form onSubmit={sendMessage} className="input-area">
-            <input 
-              type="text" 
-              className="typewriter-input"
+          <div className="input-area">
+            <textarea 
               value={input} 
               onChange={e => {
                 setInput(e.target.value);
                 playTypingSound();
-              }} 
-              placeholder="Type your response..." 
+              }}
+              onKeyDown={e => {
+                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                  sendMessage(e);
+                }
+              }}
+              placeholder="Type your response... (Cmd/Ctrl + Enter to send)" 
               disabled={loading}
+              rows={1}
             />
-            <button type="submit" disabled={loading || !input.trim()}>Send</button>
-          </form>
+            <button onClick={sendMessage} className="send-btn" disabled={loading || !input.trim()}>Send</button>
+          </div>
         )}
       </div>
     </div>
@@ -704,6 +734,8 @@ function BackgroundWrapper({ children }) {
       {isInterview && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2 }}>
           <LampLight theme="monochrome" count={15000} />
+          {/* Subtle overlay to reduce intensity behind the chat text */}
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.4)', pointerEvents: 'none' }}></div>
         </div>
       )}
       {children}
