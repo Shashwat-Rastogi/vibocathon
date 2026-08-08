@@ -130,6 +130,8 @@ function LandingPage() {
   const [stats, setStats] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
 
@@ -143,8 +145,9 @@ function LandingPage() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username.trim()) {
+    if (username.trim() && email.trim() && password.trim()) {
       localStorage.setItem('interviewer_name', username.trim());
+      localStorage.setItem('interviewer_email', email.trim());
       setIsLoggedIn(true);
       setShowModal(false);
     }
@@ -152,8 +155,11 @@ function LandingPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('interviewer_name');
+    localStorage.removeItem('interviewer_email');
     setIsLoggedIn(false);
     setUsername('');
+    setEmail('');
+    setPassword('');
   };
 
   useEffect(() => {
@@ -273,8 +279,30 @@ function LandingPage() {
         <div className="modal-overlay">
           <div className="modal-content">
             <button className="close-btn" onClick={() => setShowModal(false)}>&times;</button>
-            <form onSubmit={handleLogin} className="login-form" style={{ width: '100%', maxWidth: '100%' }}>
-              <h2 style={{ marginBottom: '16px', marginTop: 0, color: 'var(--text-primary)' }}>Interviewer Login</h2>
+            <form onSubmit={handleLogin} className="login-form" style={{ width: '100%', maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <h2 style={{ marginBottom: '8px', marginTop: 0, color: 'var(--text-primary)' }}>Interviewer Login</h2>
+              <input 
+                type="email" 
+                className="login-input typewriter-input" 
+                placeholder="Enter your Gmail" 
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  playTypingSound();
+                }}
+                required
+              />
+              <input 
+                type="password" 
+                className="login-input typewriter-input" 
+                placeholder="Enter your password" 
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  playTypingSound();
+                }}
+                required
+              />
               <input 
                 type="text" 
                 className="login-input typewriter-input" 
@@ -286,7 +314,7 @@ function LandingPage() {
                 }}
                 required
               />
-              <button type="submit" className="login-btn">Log In</button>
+              <button type="submit" className="login-btn" style={{ marginTop: '8px' }}>Log In</button>
             </form>
           </div>
         </div>
@@ -516,7 +544,9 @@ function InterviewHistory() {
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
-    setHistory(saved.reverse());
+    const currentUser = localStorage.getItem('interviewer_name');
+    const myHistory = saved.filter(h => h.interviewerName === currentUser);
+    setHistory(myHistory.reverse());
   }, []);
 
   return (
@@ -602,6 +632,7 @@ function Interview() {
         id: newSessionId,
         candidateName: selectedCandidate.member.name,
         role: selectedCandidate.jobRole,
+        interviewerName: localStorage.getItem('interviewer_name') || 'Unknown',
         timestamp: new Date().toISOString()
       });
       localStorage.setItem('interviewHistory', JSON.stringify(savedHistory));
