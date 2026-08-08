@@ -3,7 +3,8 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs';
 import { GoogleGenAI } from '@google/genai';
-import { SYSTEM_PROMPT_CONVERSATIONAL, SYSTEM_PROMPT_FEEDBACK } from './prompts.js';
+import { getSystemPrompt, SYSTEM_PROMPT_BASE_RULES, SYSTEM_PROMPT_FEEDBACK } from './prompts.js';
+import { initializeRAG, retrieveContext } from './rag.js';
 
 dotenv.config();
 
@@ -15,6 +16,9 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const curriculum = JSON.parse(fs.readFileSync('./data/curriculum.json', 'utf8'));
 const candidatesData = JSON.parse(fs.readFileSync('./data/candidates.json', 'utf8'));
 const sessions = new Map();
+
+// Initialize RAG embeddings in background
+initializeRAG();
 
 app.get('/api/candidates', (req, res) => {
     res.json(candidatesData.candidates);
@@ -38,6 +42,7 @@ app.post('/api/interview', async (req, res) => {
         if (candidate && !message) {
             session = {
                 candidate,
+                persona: req.body.persona || 'default',
                 history: [], // { role: 'user' | 'model', parts: [{ text: '...' }] }
                 questionCount: 0,
                 coveredDays: new Set()
@@ -53,12 +58,18 @@ app.post('/api/interview', async (req, res) => {
             session.history.push({ role: 'user', parts: [{ text: "Hello, I am ready to begin the interview." }] });
         }
 
-        // Prepare System Instruction
+        // Prepare System Instruction with RAG Context
+        let queryContext = message || "General software engineering and technical background based on candidate profile.";
+        const retrievedChunks = await retrieveContext(queryContext, 3);
+        const ragContextStr = retrievedChunks.map(c => c.text).join("\n\n");
+
+        const progressStr = `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
+
         const systemInstruction = 
-            SYSTEM_PROMPT_CONVERSATIONAL + "\n\n" +
+            getSystemPrompt(session.persona, session.candidate, ragContextStr, progressStr) + "\n\n" +
+            SYSTEM_PROMPT_BASE_RULES + "\n\n" +
             `Candidate Profile:\n${JSON.stringify(session.candidate)}\n\n` +
-            `Curriculum context:\n${JSON.stringify(curriculum.days)}\n\n` +
-            `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
+            progressStr;
 
         // 1. Conversational Call
         const completion = await ai.models.generateContent({
@@ -105,11 +116,12 @@ app.post('/api/interview', async (req, res) => {
             return res.json({
                 reply: reply,
                 done: true,
-                feedback
+                feedback,
+                ragSources: retrievedChunks.map(c => c.id)
             });
         }
 
-        res.json({ reply, done: false });
+        res.json({ reply, done: false, ragSources: retrievedChunks.map(c => c.id) });
 
     } catch (error) {
         console.error("API Error:", error);

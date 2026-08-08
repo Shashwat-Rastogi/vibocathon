@@ -117,10 +117,10 @@ function LandingPage() {
     <div className="landing-page-layout">
       <main className="hero-section">
         <div className="hero-content">
-          <WaviyText text="AI Cohort Interview Agent" />
+          <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
             Conducts adaptive, technical interviews based on a candidate's actual cohort progress. 
-            Tests practical knowledge of RAG, vector search, multi-agent systems, and MCP.
+            Powered by a real-time Retrieval-Augmented Generation (RAG) Brain.
           </p>
 
           <div className="hero-action-box">
@@ -141,6 +141,10 @@ function LandingPage() {
               </div>
             )}
           </div>
+          
+          <div className="hero-logo-showcase" style={{ marginTop: '40px', marginBottom: '80px' }}>
+            <img src="/logo.jpg" alt="AI Cohort Logo" style={{ width: '120px', height: '120px', borderRadius: '24px', boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)', border: '2px solid rgba(255,255,255,0.1)' }} />
+          </div>
 
           {stats && (
             <div className="hero-stats">
@@ -153,13 +157,62 @@ function LandingPage() {
                 <span className="stat-label">Day Curriculum</span>
               </div>
               <div className="stat-item">
-                <span className="stat-number">8+</span>
-                <span className="stat-label">Adaptive Questions</span>
+                <span className="stat-number">True RAG</span>
+                <span className="stat-label">Vector Search Brain</span>
               </div>
             </div>
           )}
         </div>
       </main>
+
+      <section className="features-section" style={{ padding: '100px 10%', background: 'rgba(0,0,0,0.8)', zIndex: 10 }}>
+        <h2 style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '60px' }}>Enterprise-Grade Intelligence</h2>
+        <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
+          <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center' }}>
+            <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>True RAG Brain</h3>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>We don't just stuff context. Our backend uses Google Gemini's text-embedding-004 to mathematically vector search the curriculum during the interview in real-time.</p>
+          </div>
+          <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center' }}>
+            <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>Philosophical Personas</h3>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>Tired of boring bots? Get grilled by Socrates or Friedrich Nietzsche. Our system prompts dynamically adapt to interview the candidate in their unique style.</p>
+          </div>
+          <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center' }}>
+            <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>Adaptive Difficulty</h3>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>The AI reads the candidate's GitHub commit history and mission attempts to perfectly calibrate the starting difficulty of every question.</p>
+          </div>
+        </div>
+      </section>
+
+      <section className="how-it-works-section" style={{ padding: '100px 10%', zIndex: 10 }}>
+        <h2 style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '60px' }}>How It Works</h2>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '800px', margin: '0 auto' }}>
+          <div className="glass-card" style={{ padding: '24px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <div style={{ background: 'var(--accent)', color: 'white', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>1</div>
+            <div>
+              <h4 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Select Candidate & Persona</h4>
+              <p style={{ color: 'var(--text-secondary)' }}>Choose a candidate profile and decide who will interview them (e.g., Sun Tzu).</p>
+            </div>
+          </div>
+          <div className="glass-card" style={{ padding: '24px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <div style={{ background: 'var(--accent)', color: 'white', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>2</div>
+            <div>
+              <h4 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>RAG Embedding Search</h4>
+              <p style={{ color: 'var(--text-secondary)' }}>As you chat, the backend runs a Cosine Similarity Search against our Vector DB to find the exact curriculum concepts.</p>
+            </div>
+          </div>
+          <div className="glass-card" style={{ padding: '24px', display: 'flex', gap: '20px', alignItems: 'center' }}>
+            <div style={{ background: 'var(--accent)', color: 'white', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 'bold', flexShrink: 0 }}>3</div>
+            <div>
+              <h4 style={{ fontSize: '1.2rem', marginBottom: '8px' }}>Adaptive Interviewing</h4>
+              <p style={{ color: 'var(--text-secondary)' }}>The AI formulates a question using the retrieved context and the candidate's exact experience level.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer style={{ background: '#000', padding: '40px', textAlign: 'center', color: 'var(--text-secondary)', zIndex: 10 }}>
+        <p>Built for the AI Engineering Hackathon.</p>
+      </footer>
 
       {showModal && (
         <div className="modal-overlay">
@@ -191,6 +244,7 @@ function CandidateSelection() {
   const [candidates, setCandidates] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('name-asc');
+  const [persona, setPersona] = useState('default');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -257,6 +311,18 @@ function CandidateSelection() {
               <option value="exp-asc">Experience (Low to High)</option>
               <option value="exp-desc">Experience (High to Low)</option>
             </select>
+            <select 
+              value={persona} 
+              onChange={e => setPersona(e.target.value)}
+              className="sort-select persona-select"
+              style={{ borderColor: 'var(--accent)' }}
+            >
+              <option value="default">Standard Interviewer</option>
+              <option value="socrates">Socrates (Philosophical)</option>
+              <option value="nietzsche">Friedrich Nietzsche (Intense)</option>
+              <option value="sun-tzu">Sun Tzu (Strategic)</option>
+              <option value="hopper">Grace Hopper (Pragmatic)</option>
+            </select>
           </div>
         </div>
 
@@ -265,7 +331,7 @@ function CandidateSelection() {
             filteredAndSorted.map(c => (
               <div 
                 key={c.member.id} 
-                onClick={() => navigate('/interview', { state: { candidate: c } })} 
+                onClick={() => navigate('/interview', { state: { candidate: c, persona } })} 
                 className="candidate-grid-card"
               >
                 <div className="candidate-info">
@@ -346,12 +412,14 @@ function Interview() {
   const location = useLocation();
   const navigate = useNavigate();
   const selectedCandidate = location.state?.candidate;
+  const persona = location.state?.persona || 'default';
   
   const [sessionId, setSessionId] = useState('');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [feedback, setFeedback] = useState(null);
+  const [ragActivity, setRagActivity] = useState([]);
   const messagesEndRef = useRef(null);
   
   const initialized = useRef(false);
@@ -383,13 +451,14 @@ function Interview() {
         const res = await fetch(`${API_BASE}/api/interview`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ sessionId: newSessionId, candidate: selectedCandidate })
+          body: JSON.stringify({ sessionId: newSessionId, candidate: selectedCandidate, persona })
         });
         const data = await res.json();
         if (data.error) {
           setMessages([{ role: 'assistant', content: `Server Error: ${data.error}` }]);
         } else {
           setMessages([{ role: 'assistant', content: data.reply }]);
+          if (data.ragSources) setRagActivity(data.ragSources);
         }
       } catch (err) {
         console.error(err);
@@ -426,6 +495,7 @@ function Interview() {
         setMessages(prev => [...prev, { role: 'assistant', content: `Server Error: ${data.error}` }]);
       } else {
         setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
+        if (data.ragSources) setRagActivity(data.ragSources);
         if (data.done && data.feedback) {
           setFeedback(data.feedback);
         }
@@ -444,9 +514,17 @@ function Interview() {
       <header className="chat-header glass-card" style={{ margin: '20px 10%', borderRadius: '16px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
         <div>
           <h2 style={{ color: 'white' }}>Interviewing {selectedCandidate.member.name}</h2>
-          <span className="role-badge" style={{ color: '#a1a1aa' }}>{selectedCandidate.member.jobRole}</span>
+          <span className="role-badge" style={{ color: '#a1a1aa' }}>{selectedCandidate.member.jobRole} • Persona: {persona.toUpperCase()}</span>
         </div>
-        <button onClick={() => navigate('/')} className="end-btn" style={{ color: 'white', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)' }}>End Session</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          {ragActivity.length > 0 && (
+            <div className="rag-indicator">
+              <span className="rag-pulse"></span>
+              <span style={{ fontSize: '0.8rem', color: '#a78bfa' }}>Brain accessed: Days {ragActivity.join(', ')}</span>
+            </div>
+          )}
+          <button onClick={() => navigate('/')} className="end-btn" style={{ color: 'white', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)' }}>End Session</button>
+        </div>
       </header>
       
       <div className="chat-window">

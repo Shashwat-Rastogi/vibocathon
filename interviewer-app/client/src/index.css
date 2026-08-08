@@ -582,6 +582,30 @@ body {
   100% { opacity: 0.2; }
 }
 
+.rag-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(139, 92, 246, 0.1);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.rag-pulse {
+  width: 8px;
+  height: 8px;
+  background: #a78bfa;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(167, 139, 250, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(167, 139, 250, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(167, 139, 250, 0); }
+}
+
 /* Landing Page Redesign */
 .landing-page-layout {
   width: 100%;
