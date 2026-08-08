@@ -245,6 +245,14 @@ function CandidateSelection() {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('name-asc');
   const [persona, setPersona] = useState('default');
+  
+  // Custom Candidate State
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [customName, setCustomName] = useState('');
+  const [customRole, setCustomRole] = useState('');
+  const [customExp, setCustomExp] = useState(0);
+  const [customDay, setCustomDay] = useState(15);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -263,6 +271,41 @@ function CandidateSelection() {
       if (sortOrder === 'exp-desc') return b.member.yearsExperience - a.member.yearsExperience;
       return 0;
     });
+
+  const handleCustomSubmit = (e) => {
+    e.preventDefault();
+    
+    // Generate fake missions up to the chosen day
+    const generatedMissions = [];
+    for (let i = 1; i <= customDay; i++) {
+      generatedMissions.push({
+        day: i,
+        title: `Cohort Module ${i}`,
+        passed: true,
+        attempts: 1
+      });
+    }
+
+    const customCandidate = {
+      member: {
+        id: `custom_${Date.now()}`,
+        name: customName,
+        jobRole: customRole,
+        yearsExperience: customExp,
+        education: "Custom Input",
+        status: "active"
+      },
+      missions: generatedMissions,
+      signals: {
+        commitDays: Math.floor(customDay * 0.8),
+        missionsCompleted: customDay,
+        missionsFirstTry: Math.floor(customDay * 0.9)
+      }
+    };
+
+    setShowCustomModal(false);
+    navigate('/interview', { state: { candidate: customCandidate, persona } });
+  };
 
   return (
     <div className="dashboard-container">
@@ -289,8 +332,19 @@ function CandidateSelection() {
         />
         <div className="dashboard-header">
           <div className="dashboard-title">
-            <h1>Candidates</h1>
-            <p>Select a candidate to begin their adaptive technical interview.</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+              <div>
+                <h1>Candidates</h1>
+                <p>Select a candidate to begin their adaptive technical interview.</p>
+              </div>
+              <button 
+                onClick={() => setShowCustomModal(true)} 
+                className="primary-btn" 
+                style={{ fontSize: '0.9rem', padding: '10px 20px', borderRadius: '8px' }}
+              >
+                + Create Custom Candidate
+              </button>
+            </div>
           </div>
           
           <div className="filter-sort-bar">
@@ -347,6 +401,40 @@ function CandidateSelection() {
             <div className="no-candidates">No candidates found matching your criteria.</div>
           )}
         </div>
+
+        {showCustomModal && (
+          <div className="modal-overlay">
+            <div className="modal-content" style={{ maxWidth: '500px' }}>
+              <button className="close-btn" onClick={() => setShowCustomModal(false)}>&times;</button>
+              <form onSubmit={handleCustomSubmit} className="login-form" style={{ width: '100%', maxWidth: '100%' }}>
+                <h2 style={{ marginBottom: '24px', marginTop: 0, color: 'var(--text-primary)' }}>Custom Candidate</h2>
+                
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Name</label>
+                  <input type="text" className="login-input" value={customName} onChange={e => { setCustomName(e.target.value); playTypingSound(); }} required />
+                </div>
+                
+                <div style={{ marginBottom: '16px' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Domain / Job Role</label>
+                  <input type="text" className="login-input" value={customRole} onChange={e => { setCustomRole(e.target.value); playTypingSound(); }} placeholder="e.g. Frontend Developer" required />
+                </div>
+                
+                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Years of Exp.</label>
+                    <input type="number" className="login-input" value={customExp} onChange={e => setCustomExp(Number(e.target.value))} min="0" required />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Cohort Day (1-31)</label>
+                    <input type="number" className="login-input" value={customDay} onChange={e => setCustomDay(Number(e.target.value))} min="1" max="31" required />
+                  </div>
+                </div>
+
+                <button type="submit" className="login-btn">Start Custom Interview</button>
+              </form>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
