@@ -136,18 +136,18 @@ function LandingPage() {
         <div className="hero-content">
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
-            Conducts adaptive, technical interviews based on a candidate's actual cohort progress. 
-            Powered by a real-time Retrieval-Augmented Generation (RAG) Brain.
+            Conducts adaptive technical interviews based on a<br/>candidate's actual cohort progress.<br/><br/>
+            Powered by a real-time<br/>Retrieval-Augmented Generation (RAG) Brain.
           </p>
 
-          <div className="hero-action-box">
+          <div className="hero-action-box glass-welcome-card">
             {isLoggedIn ? (
               <div className="action-box-inner">
                 <div className="action-text">Welcome back, {username}</div>
                 <button className="primary-btn hero-btn" onClick={() => navigate('/candidates')}>
-                  Select a Candidate
+                  Select a Candidate &rarr;
                 </button>
-                <button className="secondary-btn logout-btn" onClick={handleLogout}>
+                <button className="logout-text-link" onClick={handleLogout}>
                   Logout
                 </button>
               </div>
@@ -159,8 +159,8 @@ function LandingPage() {
             )}
           </div>
           
-          <div className="hero-logo-showcase" style={{ marginTop: '40px', marginBottom: '80px' }}>
-            <img src="/logo.jpg" alt="AI Cohort Logo" style={{ width: '120px', height: '120px', borderRadius: '24px', boxShadow: '0 0 40px rgba(139, 92, 246, 0.4)', border: '2px solid rgba(255,255,255,0.1)' }} />
+          <div className="hero-logo-showcase floating-logo-container">
+            <img src="/logo.jpg" alt="AI Cohort Logo" className="floating-logo-img" />
           </div>
 
           {stats && (
