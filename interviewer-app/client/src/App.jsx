@@ -417,7 +417,10 @@ function CandidateSelection() {
                   <div className="candidate-role">{c.member.jobRole}</div>
                 </div>
                 <div className="candidate-stats">
-                  <span className="experience-pill">{c.member.yearsExperience} YOE</span>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <span className="experience-pill">{c.member.yearsExperience} YOE</span>
+                    <span className="experience-pill">{c.signals?.missionsCompleted || 0}/31 Missions</span>
+                  </div>
                   <span className="start-action">Start Interview &rarr;</span>
                 </div>
               </div>
