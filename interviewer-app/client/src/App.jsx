@@ -9,6 +9,45 @@ import './index.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+let globalAudioCtx = null;
+const playTypingSound = () => {
+  try {
+    if (!globalAudioCtx) {
+      globalAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    if (globalAudioCtx.state === 'suspended') {
+      globalAudioCtx.resume();
+    }
+    
+    const ctx = globalAudioCtx;
+    const bufferSize = ctx.sampleRate * 0.015; // 15ms short click
+    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1; 
+    }
+    
+    const noise = ctx.createBufferSource();
+    noise.buffer = buffer;
+    
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 1200 + Math.random() * 800; // slightly randomize pitch
+    
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.02, ctx.currentTime); // quiet volume
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.015);
+    
+    noise.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+    
+    noise.start();
+  } catch (e) {
+    // ignore if audio context is blocked
+  }
+};
+
 const TypewriterMessage = ({ text }) => {
   const [displayedText, setDisplayedText] = useState('');
   
@@ -16,6 +55,12 @@ const TypewriterMessage = ({ text }) => {
     let i = 0;
     const interval = setInterval(() => {
       setDisplayedText(text.slice(0, i + 1));
+      
+      // Play sound roughly every 3rd character to avoid buzzing
+      if (i % 3 === 0) {
+        playTypingSound();
+      }
+      
       i++;
       if (i >= text.length) clearInterval(interval);
     }, 20); // 20ms per character typing speed
@@ -131,7 +176,10 @@ function LandingPage() {
                 className="login-input typewriter-input" 
                 placeholder="Enter your name" 
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(e) => {
+                  setUsername(e.target.value);
+                  playTypingSound();
+                }}
                 required
               />
               <button type="submit" className="login-btn">Log In</button>
@@ -449,7 +497,10 @@ function Interview() {
               type="text" 
               className="typewriter-input"
               value={input} 
-              onChange={e => setInput(e.target.value)} 
+              onChange={e => {
+                setInput(e.target.value);
+                playTypingSound();
+              }} 
               placeholder="Type your response..." 
               disabled={loading}
             />
