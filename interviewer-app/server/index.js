@@ -1,0 +1,121 @@
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import fs from 'fs';
+import { GoogleGenAI } from '@google/genai';
+import { SYSTEM_PROMPT_CONVERSATIONAL, SYSTEM_PROMPT_FEEDBACK } from './prompts.js';
+
+dotenv.config();
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const curriculum = JSON.parse(fs.readFileSync('./data/curriculum.json', 'utf8'));
+const candidatesData = JSON.parse(fs.readFileSync('./data/candidates.json', 'utf8'));
+const sessions = new Map();
+
+app.get('/api/candidates', (req, res) => {
+    res.json(candidatesData.candidates);
+});
+
+app.get('/api/stats', (req, res) => {
+    res.json({
+        candidates: candidatesData.candidates.length,
+        days: curriculum.days.length
+    });
+});
+
+app.post('/api/interview', async (req, res) => {
+    try {
+        const { sessionId, candidate, message } = req.body;
+        if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
+
+        let session = sessions.get(sessionId);
+
+        // Turn 1 Init
+        if (candidate && !message) {
+            session = {
+                candidate,
+                history: [], // { role: 'user' | 'model', parts: [{ text: '...' }] }
+                questionCount: 0,
+                coveredDays: new Set()
+            };
+            sessions.set(sessionId, session);
+        } else if (!session) {
+            return res.status(400).json({ error: 'Session not found' });
+        }
+
+        if (message) {
+            session.history.push({ role: 'user', parts: [{ text: message }] });
+        } else {
+            session.history.push({ role: 'user', parts: [{ text: "Hello, I am ready to begin the interview." }] });
+        }
+
+        // Prepare System Instruction
+        const systemInstruction = 
+            SYSTEM_PROMPT_CONVERSATIONAL + "\n\n" +
+            `Candidate Profile:\n${JSON.stringify(session.candidate)}\n\n` +
+            `Curriculum context:\n${JSON.stringify(curriculum.days)}\n\n` +
+            `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
+
+        // 1. Conversational Call
+        const completion = await ai.models.generateContent({
+            model: 'gemini-3.6-flash',
+            contents: session.history,
+            config: {
+                systemInstruction: systemInstruction,
+                temperature: 0.7,
+            }
+        });
+
+        const reply = completion.text;
+        session.history.push({ role: 'model', parts: [{ text: reply }] });
+
+        // 2. Parse/Track logic (Secondary fast call)
+        const parseCompletion = await ai.models.generateContent({
+            model: 'gemini-3.6-flash',
+            contents: `Candidate Missions: ${JSON.stringify(session.candidate.missions.map(m=>({day:m.day, title:m.title})))}\n\nAssistant Reply: "${reply}"`,
+            config: {
+                systemInstruction: 'Analyze the assistant\'s latest reply in the context of the technical interview. Determine if the assistant asked a new technical question. If yes, identify which curriculum day (integer) it primarily targets based on the candidate\'s missions. Output valid JSON only, exactly matching: { "isNewQuestion": boolean, "targetedDay": number | null }',
+                responseMimeType: "application/json",
+            }
+        });
+
+        const parsed = JSON.parse(parseCompletion.text);
+        if (parsed.isNewQuestion && parsed.targetedDay) {
+            session.questionCount++;
+            session.coveredDays.add(parsed.targetedDay);
+        }
+
+        // 3. Check Done Condition
+        if (session.questionCount >= 8 && session.coveredDays.size >= 4) {
+            // Make separate LLM call for structured feedback JSON
+            const feedbackCompletion = await ai.models.generateContent({
+                model: 'gemini-3.6-flash',
+                contents: `Candidate: ${JSON.stringify(session.candidate)}\n\nTranscript:\n${JSON.stringify(session.history)}`,
+                config: {
+                    systemInstruction: SYSTEM_PROMPT_FEEDBACK,
+                    responseMimeType: "application/json",
+                }
+            });
+            
+            const feedback = JSON.parse(feedbackCompletion.text);
+            return res.json({
+                reply: reply,
+                done: true,
+                feedback
+            });
+        }
+
+        res.json({ reply, done: false });
+
+    } catch (error) {
+        console.error("API Error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

@@ -1,0 +1,33 @@
+.waviy {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.waviy-word {
+  display: flex;
+  white-space: nowrap;
+}
+
+.waviy span {
+  position: relative;
+  display: inline-block;
+  text-transform: uppercase;
+  color: #a78bfa; 
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+  /* The animation is moved to the hover state below */
+  transition: transform 0.3s;
+}
+
+.waviy:hover span,
+.waviy.force-hover span {
+  animation: flip 2s infinite;
+  animation-delay: calc(.1s * var(--i));
+}
+
+@keyframes flip {
+  0%, 80% {
+    transform: rotateY(360deg);
+  }
+}
