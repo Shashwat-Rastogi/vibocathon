@@ -93,6 +93,39 @@ const FormattedMessage = ({ text }) => {
   );
 };
 
+const RevealOnScroll = ({ children, delay = 0, className = "" }) => {
+  const [isVisible, setIsVisible] = useState(false);
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsVisible(true);
+          observer.unobserve(entry.target);
+        }
+      },
+      { rootMargin: '0px 0px -50px 0px', threshold: 0.1 }
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div
+      ref={ref}
+      className={className}
+      style={{
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? 'translateY(0)' : 'translateY(30px)',
+        transition: `all 0.8s cubic-bezier(0.16, 1, 0.3, 1) ${delay}s`,
+      }}
+    >
+      {children}
+    </div>
+  );
+};
+
 function LandingPage() {
   const [stats, setStats] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -183,20 +216,28 @@ function LandingPage() {
       </main>
 
       <section className="features-section" style={{ padding: '100px 10%', background: 'rgba(0,0,0,0.8)', zIndex: 10 }}>
-        <h2 style={{ fontSize: '3rem', textAlign: 'center', marginBottom: '60px' }}>Enterprise-Grade Intelligence</h2>
+        <RevealOnScroll>
+          <h2 style={{ fontSize: '3rem', textAlign: 'center', margin: '0 0 60px 0', color: 'white' }}>Enterprise-Grade Intelligence</h2>
+        </RevealOnScroll>
         <div className="features-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '40px' }}>
-          <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center' }}>
-            <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>True RAG Brain</h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>We don't just stuff context. Our backend uses Google Gemini's text-embedding-004 to mathematically vector search the curriculum during the interview in real-time.</p>
-          </div>
-          <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center' }}>
-            <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>Philosophical Personas</h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>Tired of boring bots? Get grilled by Socrates or Friedrich Nietzsche. Our system prompts dynamically adapt to interview the candidate in their unique style.</p>
-          </div>
-          <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center' }}>
-            <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>Adaptive Difficulty</h3>
-            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>The AI reads the candidate's GitHub commit history and mission attempts to perfectly calibrate the starting difficulty of every question.</p>
-          </div>
+          <RevealOnScroll delay={0.1}>
+            <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center', height: '100%' }}>
+              <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>True RAG Brain</h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>We don't just stuff context. Our backend uses Google Gemini's text-embedding-004 to mathematically vector search the curriculum during the interview in real-time.</p>
+            </div>
+          </RevealOnScroll>
+          <RevealOnScroll delay={0.2}>
+            <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center', height: '100%' }}>
+              <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>Philosophical Personas</h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>Tired of boring bots? Get grilled by Socrates or Friedrich Nietzsche. Our system prompts dynamically adapt to interview the candidate in their unique style.</p>
+            </div>
+          </RevealOnScroll>
+          <RevealOnScroll delay={0.3}>
+            <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center', height: '100%' }}>
+              <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>Adaptive Difficulty</h3>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>The AI reads the candidate's GitHub commit history and mission attempts to perfectly calibrate the starting difficulty of every question.</p>
+            </div>
+          </RevealOnScroll>
         </div>
       </section>
 
@@ -397,33 +438,34 @@ function CandidateSelection() {
 
         <div className="candidate-grid">
           {filteredAndSorted.length > 0 ? (
-            filteredAndSorted.map(c => (
-              <div 
-                key={c.member.id} 
-                onClick={() => navigate('/interview', { state: { candidate: c, persona } })} 
-                className="candidate-grid-card"
-              >
-                <div className="candidate-header-row">
-                  <div className="candidate-avatar">
-                    {c.member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+            filteredAndSorted.map((c, index) => (
+              <RevealOnScroll key={c.member.id} delay={(index % 10) * 0.1}>
+                <div 
+                  onClick={() => navigate('/interview', { state: { candidate: c, persona } })} 
+                  className="candidate-grid-card"
+                >
+                  <div className="candidate-header-row">
+                    <div className="candidate-avatar">
+                      {c.member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                    </div>
+                    <div className="candidate-status">
+                      <span className="candidate-status-dot"></span> Ready
+                    </div>
                   </div>
-                  <div className="candidate-status">
-                    <span className="candidate-status-dot"></span> Ready
+                  
+                  <div className="candidate-info">
+                    <div className="candidate-name">{c.member.name}</div>
+                    <div className="candidate-role">{c.member.jobRole}</div>
+                  </div>
+                  <div className="candidate-stats">
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <span className="experience-pill">{c.member.yearsExperience} YOE</span>
+                      <span className="experience-pill">{c.signals?.missionsCompleted || 0}/31 Missions</span>
+                    </div>
+                    <span className="start-action">Start Interview &rarr;</span>
                   </div>
                 </div>
-                
-                <div className="candidate-info">
-                  <div className="candidate-name">{c.member.name}</div>
-                  <div className="candidate-role">{c.member.jobRole}</div>
-                </div>
-                <div className="candidate-stats">
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <span className="experience-pill">{c.member.yearsExperience} YOE</span>
-                    <span className="experience-pill">{c.signals?.missionsCompleted || 0}/31 Missions</span>
-                  </div>
-                  <span className="start-action">Start Interview &rarr;</span>
-                </div>
-              </div>
+              </RevealOnScroll>
             ))
           ) : (
             <div className="no-candidates">No candidates found matching your criteria.</div>
