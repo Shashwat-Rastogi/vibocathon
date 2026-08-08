@@ -355,7 +355,7 @@ function CandidateSelection() {
               <button 
                 onClick={() => setShowCustomModal(true)} 
                 className="primary-btn" 
-                style={{ fontSize: '0.9rem', padding: '10px 20px', borderRadius: '8px' }}
+                style={{ fontSize: '0.9rem', padding: '10px 24px', borderRadius: '8px', whiteSpace: 'nowrap', flexShrink: 0 }}
               >
                 + Create Custom Candidate
               </button>

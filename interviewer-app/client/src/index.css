@@ -147,8 +147,8 @@ body {
 .dashboard-header {
   margin-bottom: 40px;
   display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
+  flex-direction: column;
+  gap: 24px;
 }
 
 .dashboard-title h1 {
@@ -183,7 +183,6 @@ body {
   padding: 16px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.05);
-  margin-top: 24px;
 }
 
 .search-input {
