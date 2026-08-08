@@ -7,6 +7,8 @@ import DopaCore from './DopaCore';
 import TargetCursor from './TargetCursor';
 import './index.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 const TypewriterMessage = ({ text }) => {
   const [displayedText, setDisplayedText] = useState('');
   
@@ -60,7 +62,7 @@ function LandingPage() {
   };
 
   useEffect(() => {
-    fetch('/api/stats')
+    fetch(`${API_BASE}/api/stats`)
       .then(res => res.json())
       .then(data => setStats(data))
       .catch(console.error);
@@ -148,7 +150,7 @@ function CandidateSelection() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetch('/api/candidates')
+    fetch(`${API_BASE}/api/candidates`)
       .then(res => res.json())
       .then(data => setCandidates(data))
       .catch(err => console.error("Error fetching candidates", err));
@@ -334,7 +336,7 @@ function Interview() {
       localStorage.setItem('interviewHistory', JSON.stringify(savedHistory));
 
       try {
-        const res = await fetch('/api/interview', {
+        const res = await fetch(`${API_BASE}/api/interview`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId: newSessionId, candidate: selectedCandidate })
@@ -369,7 +371,7 @@ function Interview() {
     setLoading(true);
 
     try {
-      const res = await fetch('/api/interview', {
+      const res = await fetch(`${API_BASE}/api/interview`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, message: userMsg })
