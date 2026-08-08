@@ -719,7 +719,7 @@ function Interview() {
           <div className="role-badge" style={{ color: '#94a3b8' }}>{selectedCandidate.member.jobRole}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flex: 1, justifyContent: 'center' }}>
-          <div className="question-tracker">Question {Math.min(questionCount, 8)} / 8</div>
+          <div className="question-tracker">Question {Math.min(questionCount, 15)} / 15</div>
           <div className="live-indicator">
             <span className="live-dot"></span> LIVE INTERVIEW
           </div>

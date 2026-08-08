@@ -65,7 +65,7 @@ app.post('/api/interview', async (req, res) => {
         const retrievedChunks = await retrieveContext(queryContext, 3);
         const ragContextStr = retrievedChunks.map(c => c.text).join("\n\n");
 
-        const progressStr = `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
+        const progressStr = `Progress: ${session.questionCount}/15 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
 
         const systemInstruction = 
             getSystemPrompt(session.persona, session.candidate, ragContextStr, progressStr) + "\n\n" +
@@ -102,7 +102,7 @@ app.post('/api/interview', async (req, res) => {
         }
 
         // 3. Check Done Condition
-        if (session.questionCount >= 8 && session.coveredDays.size >= 4) {
+        if (session.questionCount >= 15 && session.coveredDays.size >= 4) {
             // Make separate LLM call for structured feedback JSON
             const feedbackCompletionText = await generateContentWithFallback(
                 'gemini-3.6-flash',
