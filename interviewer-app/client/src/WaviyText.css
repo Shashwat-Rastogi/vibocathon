@@ -16,8 +16,8 @@
   text-transform: uppercase;
   color: #a78bfa; 
   text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-  animation: flip 4s infinite;
-  animation-delay: calc(.2s * var(--i));
+  animation: flip 8s infinite;
+  animation-delay: calc(.4s * var(--i));
   transition: transform 0.3s;
 }
 
