@@ -84,18 +84,18 @@ function LandingPage() {
 
           <div className="hero-action-box">
             {isLoggedIn ? (
-              <>
+              <div className="action-box-inner">
                 <div className="action-text">Welcome back, {username}</div>
                 <button className="primary-btn hero-btn" onClick={() => navigate('/candidates')}>
                   Select a Candidate
                 </button>
-                <button className="secondary-btn" onClick={handleLogout} style={{ marginTop: '12px', background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer' }}>
+                <button className="secondary-btn logout-btn" onClick={handleLogout}>
                   Logout
                 </button>
-              </>
+              </div>
             ) : (
-              <div className="login-prompt">
-                <div className="action-text" style={{ marginBottom: '16px' }}>Interviewer Login</div>
+              <div className="action-box-inner">
+                <div className="action-text">Interviewer Login</div>
                 <button className="primary-btn hero-btn" onClick={() => setShowModal(true)}>Login</button>
               </div>
             )}
