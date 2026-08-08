@@ -1,7 +1,6 @@
-import { GoogleGenAI } from '@google/genai';
 import fs from 'fs';
+import { embedContentWithFallback } from './ai_fallback.js';
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 const curriculum = JSON.parse(fs.readFileSync('./data/curriculum.json', 'utf8'));
 
 let vectorStore = [];
@@ -38,14 +37,11 @@ export const initializeRAG = async () => {
     // Generate embeddings sequentially to avoid rate limits
     for (const chunk of chunks) {
         try {
-            const response = await ai.models.embedContent({
-                model: 'text-embedding-004',
-                contents: chunk.text
-            });
+            const embedding = await embedContentWithFallback(chunk.text);
             vectorStore.push({
                 id: chunk.id,
                 text: chunk.text,
-                embedding: response.embeddings[0].values
+                embedding: embedding
             });
             // Small delay to respect free tier rate limits
             await new Promise(resolve => setTimeout(resolve, 500));
@@ -63,11 +59,7 @@ export const retrieveContext = async (query, topK = 3) => {
     if (vectorStore.length === 0) return [];
     
     try {
-        const queryResponse = await ai.models.embedContent({
-            model: 'text-embedding-004',
-            contents: query
-        });
-        const queryEmbedding = queryResponse.embeddings[0].values;
+        const queryEmbedding = await embedContentWithFallback(query);
         
         // Calculate similarity for all chunks
         const scoredChunks = vectorStore.map(chunk => ({

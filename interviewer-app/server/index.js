@@ -2,9 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import fs from 'fs';
-import { GoogleGenAI } from '@google/genai';
 import { getSystemPrompt, SYSTEM_PROMPT_BASE_RULES, SYSTEM_PROMPT_FEEDBACK } from './prompts.js';
 import { initializeRAG, retrieveContext } from './rag.js';
+import { initAI, generateContentWithFallback } from './ai_fallback.js';
 
 dotenv.config();
 
@@ -12,7 +12,9 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+// Initialize AI clients (Gemini keys + Freemodel)
+initAI();
+
 const curriculum = JSON.parse(fs.readFileSync('./data/curriculum.json', 'utf8'));
 const candidatesData = JSON.parse(fs.readFileSync('./data/candidates.json', 'utf8'));
 const sessions = new Map();
@@ -72,29 +74,28 @@ app.post('/api/interview', async (req, res) => {
             progressStr;
 
         // 1. Conversational Call
-        const completion = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
-            contents: session.history,
-            config: {
+        const reply = await generateContentWithFallback(
+            'gemini-3.6-flash',
+            session.history,
+            {
                 systemInstruction: systemInstruction,
                 temperature: 0.7,
             }
-        });
+        );
 
-        const reply = completion.text;
         session.history.push({ role: 'model', parts: [{ text: reply }] });
 
         // 2. Parse/Track logic (Secondary fast call)
-        const parseCompletion = await ai.models.generateContent({
-            model: 'gemini-3.6-flash',
-            contents: `Candidate Missions: ${JSON.stringify(session.candidate.missions.map(m=>({day:m.day, title:m.title})))}\n\nAssistant Reply: "${reply}"`,
-            config: {
+        const parseCompletionText = await generateContentWithFallback(
+            'gemini-3.6-flash',
+            `Candidate Missions: ${JSON.stringify(session.candidate.missions.map(m=>({day:m.day, title:m.title})))}\n\nAssistant Reply: "${reply}"`,
+            {
                 systemInstruction: 'Analyze the assistant\'s latest reply in the context of the technical interview. Determine if the assistant asked a new technical question. If yes, identify which curriculum day (integer) it primarily targets based on the candidate\'s missions. Output valid JSON only, exactly matching: { "isNewQuestion": boolean, "targetedDay": number | null }',
                 responseMimeType: "application/json",
             }
-        });
+        );
 
-        const parsed = JSON.parse(parseCompletion.text);
+        const parsed = JSON.parse(parseCompletionText);
         if (parsed.isNewQuestion && parsed.targetedDay) {
             session.questionCount++;
             session.coveredDays.add(parsed.targetedDay);
@@ -103,16 +104,16 @@ app.post('/api/interview', async (req, res) => {
         // 3. Check Done Condition
         if (session.questionCount >= 8 && session.coveredDays.size >= 4) {
             // Make separate LLM call for structured feedback JSON
-            const feedbackCompletion = await ai.models.generateContent({
-                model: 'gemini-3.6-flash',
-                contents: `Candidate: ${JSON.stringify(session.candidate)}\n\nTranscript:\n${JSON.stringify(session.history)}`,
-                config: {
+            const feedbackCompletionText = await generateContentWithFallback(
+                'gemini-3.6-flash',
+                `Candidate: ${JSON.stringify(session.candidate)}\n\nTranscript:\n${JSON.stringify(session.history)}`,
+                {
                     systemInstruction: SYSTEM_PROMPT_FEEDBACK,
                     responseMimeType: "application/json",
                 }
-            });
+            );
             
-            const feedback = JSON.parse(feedbackCompletion.text);
+            const feedback = JSON.parse(feedbackCompletionText);
             return res.json({
                 reply: reply,
                 done: true,
