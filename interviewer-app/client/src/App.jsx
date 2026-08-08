@@ -115,10 +115,6 @@ function LandingPage() {
 
   return (
     <div className="landing-page-layout">
-      <nav className="top-nav">
-        <div className="nav-logo">AI Cohort Agent</div>
-      </nav>
-
       <main className="hero-section">
         <div className="hero-content">
           <WaviyText text="AI Cohort Interview Agent" />
