@@ -72,7 +72,7 @@ const TypewriterMessage = ({ text }) => {
     <>
       {displayedText}
       <span className={displayedText.length < text.length ? 'blinking-cursor typing' : 'blinking-cursor done'}></span>
-    </div>
+    </>
   );
 };
 
