@@ -35,7 +35,7 @@ const playTypingSound = () => {
     filter.frequency.value = 1200 + Math.random() * 800; // slightly randomize pitch
     
     const gain = ctx.createGain();
-    gain.gain.setValueAtTime(0.02, ctx.currentTime); // quiet volume
+    gain.gain.setValueAtTime(0.2, ctx.currentTime); // increased volume (20%)
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.015);
     
     noise.connect(filter);
@@ -56,14 +56,14 @@ const TypewriterMessage = ({ text }) => {
     const interval = setInterval(() => {
       setDisplayedText(text.slice(0, i + 1));
       
-      // Play sound roughly every 3rd character to avoid buzzing
-      if (i % 3 === 0) {
+      // Play sound almost every character for a rapid hacker feel
+      if (i % 2 === 0) {
         playTypingSound();
       }
       
       i++;
       if (i >= text.length) clearInterval(interval);
-    }, 20); // 20ms per character typing speed
+    }, 10); // 10ms per character for blazing fast speed
     
     return () => clearInterval(interval);
   }, [text]);
