@@ -1198,7 +1198,7 @@ function Interview() {
           
           <div className="panel-speakers" style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px 10px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
             {[
-              { name: 'Socrates', role: 'Systems', icon: '🏛️', color: '#a78bfa' },
+              { name: 'Socrates', role: 'Systems', icon: '🏛️', color: '#f472b6' },
               { name: 'Grace Hopper', role: 'Backend', icon: '💻', color: '#2dd4bf' },
               { name: 'Sun Tzu', role: 'Strategy', icon: '🛡️', color: '#f43f5e' }
             ].map(agent => {
@@ -1228,7 +1228,7 @@ function Interview() {
           {ragActivity.length > 0 && (
             <div className="rag-indicator" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '8px' }}>
               <span className="rag-pulse"></span>
-              <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 'bold' }}>RAG</span>
+              <span style={{ fontSize: '0.75rem', color: '#f472b6', fontWeight: 'bold' }}>RAG</span>
             </div>
           )}
           <button 
@@ -1299,7 +1299,7 @@ function Interview() {
             backdropFilter: 'blur(12px)',
             justifyContent: 'flex-start'
           }}>
-            <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#a78bfa', letterSpacing: '0.5px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Cognitive Profile</h3>
+            <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#f472b6', letterSpacing: '0.5px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Cognitive Profile</h3>
             
             {analytics.confidenceScore !== null ? (
               <>
@@ -1311,11 +1311,11 @@ function Interview() {
                     width: '80px',
                     height: '80px',
                     borderRadius: '50%',
-                    background: `conic-gradient(#a78bfa ${analytics.confidenceScore}%, rgba(255,255,255,0.05) ${analytics.confidenceScore}%)`,
+                    background: `conic-gradient(#f472b6 ${analytics.confidenceScore}%, rgba(255,255,255,0.05) ${analytics.confidenceScore}%)`,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '0 0 12px rgba(167, 139, 250, 0.15)'
+                    boxShadow: '0 0 12px rgba(244, 114, 182, 0.25)'
                   }}>
                     <div style={{
                       width: '68px',
@@ -1341,9 +1341,9 @@ function Interview() {
                     textAlign: 'center',
                     fontWeight: 'bold',
                     fontSize: '0.85rem',
-                    color: analytics.sentiment === 'Confident' ? '#2dd4bf' : analytics.sentiment === 'Analytical' ? '#a78bfa' : analytics.sentiment === 'Hesitant' ? '#fbbf24' : '#f87171',
-                    background: analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.08)' : analytics.sentiment === 'Analytical' ? 'rgba(167, 139, 250, 0.08)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.08)' : 'rgba(248, 113, 113, 0.08)',
-                    border: `1px solid ${analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.2)' : analytics.sentiment === 'Analytical' ? 'rgba(167, 139, 250, 0.2)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(248, 113, 113, 0.2)'}`
+                    color: analytics.sentiment === 'Confident' ? '#2dd4bf' : analytics.sentiment === 'Analytical' ? '#f472b6' : analytics.sentiment === 'Hesitant' ? '#fbbf24' : '#f87171',
+                    background: analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.08)' : analytics.sentiment === 'Analytical' ? 'rgba(244, 114, 182, 0.08)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.08)' : 'rgba(248, 113, 113, 0.08)',
+                    border: `1px solid ${analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.2)' : analytics.sentiment === 'Analytical' ? 'rgba(244, 114, 182, 0.2)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(248, 113, 113, 0.2)'}`
                   }}>
                     {analytics.sentiment}
                   </div>
@@ -1360,8 +1360,8 @@ function Interview() {
                           flex: 1,
                           height: '6px',
                           borderRadius: '3px',
-                          background: active ? '#a78bfa' : 'rgba(255,255,255,0.05)',
-                          boxShadow: active ? '0 0 6px rgba(167, 139, 250, 0.3)' : 'none',
+                          background: active ? '#f472b6' : 'rgba(255,255,255,0.05)',
+                          boxShadow: active ? '0 0 6px rgba(244, 114, 182, 0.4)' : 'none',
                           transition: 'all 0.3s ease'
                         }} />
                       );
@@ -1388,11 +1388,11 @@ function Interview() {
                   {m.role === 'assistant' && m.speaker && (
                     <div className="speaker-pill" style={{
                       fontSize: '0.7rem',
-                      color: m.speaker === 'Socrates' ? '#a78bfa' : m.speaker === 'Grace Hopper' ? '#2dd4bf' : '#f43f5e',
-                      background: m.speaker === 'Socrates' ? 'rgba(139, 92, 246, 0.12)' : m.speaker === 'Grace Hopper' ? 'rgba(45, 212, 191, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+                      color: m.speaker === 'Socrates' ? '#f472b6' : m.speaker === 'Grace Hopper' ? '#2dd4bf' : '#f43f5e',
+                      background: m.speaker === 'Socrates' ? 'rgba(244, 114, 182, 0.12)' : m.speaker === 'Grace Hopper' ? 'rgba(45, 212, 191, 0.12)' : 'rgba(244, 63, 94, 0.12)',
                       padding: '2px 8px',
                       borderRadius: '10px',
-                      border: m.speaker === 'Socrates' ? '1px solid rgba(139, 92, 246, 0.25)' : m.speaker === 'Grace Hopper' ? '1px solid rgba(45, 212, 191, 0.25)' : '1px solid rgba(244, 63, 94, 0.25)',
+                      border: m.speaker === 'Socrates' ? '1px solid rgba(244, 114, 182, 0.25)' : m.speaker === 'Grace Hopper' ? '1px solid rgba(45, 212, 191, 0.25)' : '1px solid rgba(244, 63, 94, 0.25)',
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '4px',
@@ -1421,11 +1421,11 @@ function Interview() {
             {feedback ? (
               <div className="feedback-card" style={{ overflowY: 'auto', maxHeight: '400px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ margin: 0, color: '#a78bfa' }}>📋 Interview Report</h3>
+                  <h3 style={{ margin: 0, color: '#f472b6' }}>📋 Interview Report</h3>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                       onClick={() => copyFeedbackToClipboard(selectedCandidate.member.name, selectedCandidate.jobRole, feedback, () => { setCopiedFeedback(true); setTimeout(() => setCopiedFeedback(false), 2000); })}
-                      style={{ background: 'rgba(139, 92, 246, 0.15)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#c084fc', borderRadius: '6px', padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
+                      style={{ background: 'rgba(244, 114, 182, 0.15)', border: '1px solid rgba(244, 114, 182, 0.3)', color: '#f472b6', borderRadius: '6px', padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
                     >
                       {copiedFeedback ? '✓ Copied!' : '📋 Copy Text'}
                     </button>
@@ -1481,10 +1481,10 @@ function Interview() {
                 </div>
                 {feedback.revisionDeck && feedback.revisionDeck.length > 0 && (
                   <div className="feedback-section revision-deck" style={{ marginTop: '24px' }}>
-                    <h4 style={{ color: '#a78bfa', marginBottom: '16px' }}>Revision Deck</h4>
+                    <h4 style={{ color: '#f472b6', marginBottom: '16px' }}>Revision Deck</h4>
                     <div className="flashcard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
                       {feedback.revisionDeck.map((card, i) => (
-                        <div key={i} className="flashcard glass-card" style={{ padding: '12px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                        <div key={i} className="flashcard glass-card" style={{ padding: '12px', borderRadius: '12px', border: '1px solid rgba(244, 114, 182, 0.3)' }}>
                           <div className="flashcard-topic" style={{ fontWeight: 'bold', color: 'white', marginBottom: '6px', fontSize: '0.85rem', textTransform: 'uppercase' }}>{card.topic}</div>
                           <div className="flashcard-concept" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.4' }}>{card.concept}</div>
                         </div>
@@ -1503,11 +1503,11 @@ function Interview() {
                     borderRadius: '8px',
                     fontSize: '0.95rem',
                     fontWeight: 'bold',
-                    background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #f472b6 0%, #f97316 100%)',
                     color: 'white',
                     border: 'none',
                     cursor: 'pointer',
-                    boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
+                    boxShadow: '0 4px 12px rgba(244, 114, 182, 0.3)'
                   }}
                 >
                   Return to Dashboard
