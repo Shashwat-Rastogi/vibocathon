@@ -9,7 +9,11 @@ import { initAI, generateContentWithFallback } from './ai_fallback.js';
 dotenv.config();
 
 const app = express();
-app.use(cors());
+app.use(cors({
+    origin: process.env.ALLOWED_ORIGIN || '*',
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type']
+}));
 app.use(express.json());
 
 // Initialize AI clients (Gemini keys + Freemodel)
@@ -69,8 +73,11 @@ app.get('/api/interviews', (req, res) => {
 
 app.post('/api/interview', async (req, res) => {
     try {
-        const { sessionId, candidate, message } = req.body;
+        const { sessionId, candidate, message, persona } = req.body;
         if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
+
+        // Input validation: cap message length, strip null bytes
+        const safeMessage = message ? message.replace(/\0/g, '').slice(0, 2000) : null;
 
         let session = sessions.get(sessionId);
 
@@ -89,15 +96,15 @@ app.post('/api/interview', async (req, res) => {
             return res.status(400).json({ error: 'Session not found' });
         }
 
-        if (message) {
-            session.history.push({ role: 'user', parts: [{ text: message }] });
+        if (safeMessage) {
+            session.history.push({ role: 'user', parts: [{ text: safeMessage }] });
             session.userAnswerCount = (session.userAnswerCount || 0) + 1;
         } else {
             session.history.push({ role: 'user', parts: [{ text: "Hello, I am ready to begin the interview." }] });
         }
 
         // Prepare System Instruction with RAG Context
-        let queryContext = message || "General software engineering and technical background based on candidate profile.";
+        let queryContext = safeMessage || "General software engineering and technical background based on candidate profile.";
         const retrievedChunks = await retrieveContext(queryContext, 3);
         const ragContextStr = retrievedChunks.map(c => c.text).join("\n\n");
 
@@ -134,10 +141,10 @@ app.post('/api/interview', async (req, res) => {
             else if (session.persona === 'sun-tzu') speaker = 'Sun Tzu';
         }
 
-        // Heuristic analytics on user's answer (if message is provided)
+        // Heuristic analytics on user's answer (if safeMessage is provided)
         let analytics = null;
-        if (message) {
-            const lowerMsg = message.toLowerCase();
+        if (safeMessage) {
+            const lowerMsg = safeMessage.toLowerCase();
             
             // Detect copy-pasted assistant greeting or question
             let isCopyPaste = false;
@@ -215,7 +222,7 @@ app.post('/api/interview', async (req, res) => {
         }
 
         // 2. Parse/Track logic - only if user gave a real answer (not the greeting)
-        if (message) {
+        if (safeMessage) {
             const parseCompletionText = await generateContentWithFallback(
                 'gemini-3.6-flash',
                 `Candidate Missions: ${JSON.stringify(session.candidate.missions.map(m=>({day:m.day, title:m.title})))}\n\nAssistant Reply: "${reply}"`,
@@ -253,8 +260,21 @@ app.post('/api/interview', async (req, res) => {
                     responseMimeType: "application/json",
                 }
             );
-            
-            const feedback = JSON.parse(feedbackCompletionText);
+
+            let feedback;
+            try {
+                feedback = JSON.parse(feedbackCompletionText);
+            } catch (parseErr) {
+                console.error("Failed to parse feedback JSON:", parseErr.message, "Raw:", feedbackCompletionText?.substring(0, 200));
+                feedback = {
+                    score: 50,
+                    summary: "Evaluation report could not be parsed. The interview was completed successfully.",
+                    strengths: ["Interview session completed."],
+                    gaps: ["Detailed analysis unavailable due to a parsing error."],
+                    next: ["Please review the transcript manually."],
+                    revisionDeck: []
+                };
+            }
 
             saveInterviewToDB({
                 id: sessionId,
@@ -272,6 +292,7 @@ app.post('/api/interview', async (req, res) => {
                 analytics,
                 done: true,
                 feedback,
+                questionCount: session.questionCount,
                 ragSources: retrievedChunks.map(c => c.id)
             });
         }
@@ -280,7 +301,8 @@ app.post('/api/interview', async (req, res) => {
             reply: cleanedReply, 
             speaker,
             analytics,
-            done: false, 
+            done: false,
+            questionCount: session.questionCount,
             ragSources: retrievedChunks.map(c => c.id) 
         });
 

@@ -644,6 +644,7 @@ function Interview() {
   const [pendingFeedback, setPendingFeedback] = useState(null);
 
   const initialized = useRef(false);
+  const inflight = useRef(false); // race-condition guard
 
   useEffect(() => {
     if (!selectedCandidate) {
@@ -675,16 +676,18 @@ function Interview() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ sessionId: newSessionId, candidate: selectedCandidate, persona })
         });
+        if (!res.ok) throw new Error(`Server error ${res.status}`);
         const data = await res.json();
         if (data.error) {
-          setMessages([{ role: 'assistant', content: `Server Error: ${data.error}`, speaker: 'Socrates' }]);
+          setMessages([{ role: 'assistant', content: `⚠️ Server Error: ${data.error}. Please refresh and try again.`, speaker: 'Socrates' }]);
         } else {
-          setMessages([{ role: 'assistant', content: data.reply, speaker: data.speaker || 'Socrates' }]);
+          setMessages([{ role: 'assistant', content: data.reply, speaker: data.speaker || 'Socrates', id: crypto.randomUUID() }]);
           if (data.speaker) setActiveSpeaker(data.speaker);
           if (data.ragSources) setRagActivity(data.ragSources);
         }
       } catch (err) {
         console.error(err);
+        setMessages([{ role: 'assistant', content: '⚠️ Connection failed. Please check your network and refresh the page.', speaker: 'Socrates', id: crypto.randomUUID() }]);
       } finally {
         setLoading(false);
       }
@@ -699,11 +702,13 @@ function Interview() {
 
   const sendMessage = async (e) => {
     e.preventDefault();
-    if (!input.trim() || loading || feedback) return;
+    if (!input.trim() || loading || feedback || inflight.current) return;
+    inflight.current = true;
     
     const userMsg = input.trim();
+    const msgId = crypto.randomUUID();
     setInput('');
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
+    setMessages(prev => [...prev, { role: 'user', content: userMsg, id: msgId }]);
     setLoading(true);
 
     try {
@@ -712,14 +717,17 @@ function Interview() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ sessionId, message: userMsg })
       });
+      if (!res.ok) throw new Error(`Server error ${res.status}`);
       const data = await res.json();
       
       if (data.error) {
-        setMessages(prev => [...prev, { role: 'assistant', content: `Server Error: ${data.error}`, speaker: 'Socrates' }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: `⚠️ ${data.error}`, speaker: 'Socrates', id: crypto.randomUUID() }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply, speaker: data.speaker || 'Socrates' }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply, speaker: data.speaker || 'Socrates', id: crypto.randomUUID() }]);
         if (data.speaker) setActiveSpeaker(data.speaker);
         if (data.analytics) setAnalytics(data.analytics);
+        // Use server's questionCount as source of truth
+        if (data.questionCount !== undefined) setQuestionCount(data.questionCount + 1);
         
         if (data.done && data.feedback) {
           setPendingFeedback(data.feedback);
@@ -730,15 +738,15 @@ function Interview() {
             h.id === sessionId ? { ...h, feedback: data.feedback } : h
           );
           localStorage.setItem('interviewHistory', JSON.stringify(updatedHistory));
-        } else {
-          setQuestionCount(prev => prev + 1);
         }
         if (data.ragSources) setRagActivity(data.ragSources);
       }
     } catch (err) {
       console.error(err);
+      setMessages(prev => [...prev, { role: 'assistant', content: '⚠️ Connection error — your response was not sent. Please try again.', speaker: 'Socrates', id: crypto.randomUUID() }]);
     } finally {
       setLoading(false);
+      inflight.current = false;
     }
   };
 
@@ -942,7 +950,7 @@ function Interview() {
           <div className="chat-window" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', margin: 0, width: '100%', overflow: 'hidden' }}>
             <div className="messages-area" style={{ flex: 1, overflowY: 'auto' }}>
               {messages.map((m, i) => (
-                <div key={i} className={`message-wrapper ${m.role}`}>
+                <div key={m.id || i} className={`message-wrapper ${m.role}`}>
                   {m.role === 'assistant' && m.speaker && (
                     <div className="speaker-pill" style={{
                       fontSize: '0.7rem',
@@ -982,7 +990,14 @@ function Interview() {
                   <h3 style={{ margin: 0, color: '#a78bfa' }}>📋 Interview Report</h3>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {feedback.score !== undefined && (
-                      <div className="score-badge" style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '6px 14px', borderRadius: '20px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)', fontSize: '0.85rem' }}>Score: {feedback.score}/100</div>
+                      <div className="score-badge" style={{
+                        background: feedback.score >= 75 ? 'rgba(16,185,129,0.15)' : feedback.score >= 50 ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)',
+                        padding: '6px 14px', borderRadius: '20px',
+                        color: feedback.score >= 75 ? '#34d399' : feedback.score >= 50 ? '#fbbf24' : '#f87171',
+                        fontWeight: 'bold',
+                        border: `1px solid ${feedback.score >= 75 ? 'rgba(16,185,129,0.4)' : feedback.score >= 50 ? 'rgba(245,158,11,0.4)' : 'rgba(239,68,68,0.4)'}`,
+                        fontSize: '0.85rem'
+                      }}>Score: {feedback.score}/100</div>
                     )}
                     <button
                       title="Close report & return to interview chat"
@@ -1059,15 +1074,19 @@ function Interview() {
                   onChange={e => {
                     setInput(e.target.value);
                     playTypingSound();
+                    // Auto-resize
+                    e.target.style.height = 'auto';
+                    e.target.style.height = Math.min(e.target.scrollHeight, 200) + 'px';
                   }}
                   onKeyDown={e => {
                     if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
                       sendMessage(e);
                     }
                   }}
-                  placeholder="Type your response... (Cmd/Ctrl + Enter to send)" 
+                  placeholder="Type your response... (Ctrl+Enter to send)" 
                   disabled={loading}
                   rows={1}
+                  style={{ height: '60px' }}
                 />
                 <button onClick={sendMessage} className="send-btn" disabled={loading || !input.trim()}>Send</button>
               </div>
