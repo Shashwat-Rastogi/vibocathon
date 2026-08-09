@@ -46,10 +46,20 @@ export const initAI = () => {
     const keysStr = process.env.GEMINI_API_KEY || '';
     const keys = keysStr.split(',').map(k => k.trim()).filter(k => k);
     if (keys.length === 0) {
-        console.warn("No GEMINI_API_KEY provided");
+        console.error("❌ CRITICAL: No GEMINI_API_KEY found in environment! Add it to Render's Environment Variables.");
+    } else {
+        console.log(`✅ Gemini: Loaded ${keys.length} key(s). First key starts with: ${keys[0].substring(0,10)}...`);
     }
     geminiClients = keys.map(key => new GoogleGenAI({ apiKey: key }));
     currentGeminiIndex = 0;
+
+    const groqKeysStr = process.env.GROQ_API_KEY || '';
+    const groqKeys = groqKeysStr.split(',').map(k => k.trim()).filter(k => k);
+    if (groqKeys.length === 0) {
+        console.error("❌ CRITICAL: No GROQ_API_KEY found in environment! Add it to Render's Environment Variables.");
+    } else {
+        console.log(`✅ Groq: Loaded ${groqKeys.length} key(s). First key starts with: ${groqKeys[0].substring(0,10)}...`);
+    }
 };
 
 export const getGeminiClient = () => {
