@@ -297,9 +297,9 @@ function LandingPage() {
   const navigate = useNavigate();
   
   const [terminalLogs, setTerminalLogs] = useState([
-    '[INIT] RAG Cognitive core initialized.',
+    '[INIT] RAG engine initialized over 31-day curriculum.',
     '[OK] SQLite storage layer verified. 3 tables synced.',
-    '[RAG] Vector brain mapped. 768 dimensions ready.',
+    '[RAG] TF-IDF index built. Cosine similarity retrieval ready.',
     '[SYS] Multi-turn difficulty calibration active.',
   ]);
 
@@ -335,16 +335,16 @@ function LandingPage() {
 
   useEffect(() => {
     const logs = [
-      '[OK] Cosine similarity algorithm verified.',
-      '[RAG] text-embedding-004 index loaded.',
-      '[SYS] Connected to Gemini-1.5-Pro adapter.',
-      '[METRIC] Sarah Johnson (Data Engineer) YOE verified: 10.',
-      '[SYS] Nietzsche persona prompt loaded.',
+      '[OK] Cosine similarity retrieval verified against curriculum.',
+      '[RAG] TF-IDF index loaded. Top-3 chunk retrieval active.',
+      '[SYS] Gemini-2.0-Flash adapter connected. Key rotation armed.',
+      '[SYS] Groq llama-3.3-70b fallback standby.',
+      '[SYS] Socrates persona prompt loaded.',
       '[SYS] Sun Tzu persona prompt loaded.',
-      '[DB] Saved feedback sync completed.',
+      '[SYS] Grace Hopper persona prompt loaded.',
+      '[DB] SQLite session + feedback tables verified.',
       '[RAG] Mapping curriculum concepts across 31 days.',
-      '[OK] Auto-calibrated starting prompt difficulty.',
-      '[SYS] Active interviewer socket listening.'
+      '[OK] Difficulty calibration active from commitDays signal.'
     ];
     let idx = 0;
     const interval = setInterval(() => {
@@ -367,7 +367,7 @@ function LandingPage() {
           </div>
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
-            Conducts adaptive technical interviews calibrated dynamically against a candidate's actual curriculum progress and GitHub commit history.
+            Conducts adaptive technical interviews calibrated dynamically against a candidate's actual curriculum progress and cohort commit activity.
           </p>
 
           <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(244, 114, 182, 0.25)', background: 'rgba(10, 10, 24, 0.7)', margin: '0 auto 30px' }}>
@@ -476,7 +476,7 @@ function LandingPage() {
           <RevealOnScroll delay={0.3}>
             <div className="feature-card glass-card" style={{ padding: '40px', textAlign: 'center', height: '100%' }}>
               <h3 style={{ color: 'var(--accent)', fontSize: '1.5rem', marginBottom: '16px' }}>Adaptive Difficulty</h3>
-              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>The AI reads the candidate's GitHub commit history and mission attempts to perfectly calibrate the starting difficulty of every question.</p>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6' }}>The AI reads the candidate's cohort commit activity and mission attempts to perfectly calibrate the starting difficulty of every question.</p>
             </div>
           </RevealOnScroll>
         </div>
