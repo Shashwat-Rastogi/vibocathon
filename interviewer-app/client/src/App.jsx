@@ -326,7 +326,7 @@ function CandidateSelection() {
   const [candidates, setCandidates] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('name-asc');
-  const [persona, setPersona] = useState('default');
+  const [persona, setPersona] = useState('socrates');
   
   // Custom Candidate State
   const [showCustomModal, setShowCustomModal] = useState(false);
@@ -392,8 +392,14 @@ function CandidateSelection() {
   return (
     <div className="dashboard-container">
       <aside className="dashboard-sidebar">
-        <div className="sidebar-logo">AI Cohort Agent</div>
+        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
+          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+          <span>AI Cohort Agent</span>
+        </div>
         <nav className="sidebar-nav">
+          <div className="nav-item" onClick={() => navigate('/')}>
+            <span>Home</span>
+          </div>
           <div className="nav-item" onClick={() => navigate('/overview')}>
             <span>Overview</span>
           </div>
@@ -457,7 +463,6 @@ function CandidateSelection() {
               className="sort-select persona-select"
               style={{ borderColor: 'var(--accent)' }}
             >
-              <option value="default">Standard Interviewer</option>
               <option value="socrates">Socrates (Philosophical)</option>
               <option value="nietzsche">Friedrich Nietzsche (Intense)</option>
               <option value="sun-tzu">Sun Tzu (Strategic)</option>
@@ -566,8 +571,14 @@ function InterviewHistory() {
   return (
     <div className="dashboard-container">
       <aside className="dashboard-sidebar">
-        <div className="sidebar-logo">AI Cohort Agent</div>
+        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
+          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+          <span>AI Cohort Agent</span>
+        </div>
         <nav className="sidebar-nav">
+          <div className="nav-item" onClick={() => navigate('/')}>
+            <span>Home</span>
+          </div>
           <div className="nav-item" onClick={() => navigate('/overview')}>
             <span>Overview</span>
           </div>
@@ -1186,8 +1197,14 @@ function ReportsDashboard() {
   return (
     <div className="dashboard-container">
       <aside className="dashboard-sidebar">
-        <div className="sidebar-logo">AI Cohort Agent</div>
+        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
+          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+          <span>AI Cohort Agent</span>
+        </div>
         <nav className="sidebar-nav">
+          <div className="nav-item" onClick={() => navigate('/')}>
+            <span>Home</span>
+          </div>
           <div className="nav-item" onClick={() => navigate('/overview')}>
             <span>Overview</span>
           </div>
@@ -1305,6 +1322,9 @@ function OverviewDashboard() {
           <span>AI Cohort Agent</span>
         </div>
         <nav className="sidebar-nav">
+          <div className="nav-item" onClick={() => navigate('/')}>
+            <span>Home</span>
+          </div>
           <div className="nav-item active">
             <span>Overview</span>
           </div>
