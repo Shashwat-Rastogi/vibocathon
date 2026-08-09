@@ -161,7 +161,14 @@ const TargetCursor = ({
 
     tickerFnRef.current = tickerFn;
 
-    const moveHandler = e => moveCursor(e.clientX, e.clientY);
+    const moveHandler = e => {
+      moveCursor(e.clientX, e.clientY);
+      if (activeTarget && !document.body.contains(activeTarget)) {
+        if (currentLeaveHandler) {
+          currentLeaveHandler();
+        }
+      }
+    };
     window.addEventListener('mousemove', moveHandler);
 
     const scrollHandler = () => {
