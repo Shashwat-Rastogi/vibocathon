@@ -2006,21 +2006,64 @@ function BackgroundWrapper({ children }) {
   );
 }
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, info: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+    this.setState({ error, info: errorInfo });
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '40px', background: '#050510', color: '#ef4444', minHeight: '100vh', fontFamily: 'monospace', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}>
+          <div className="glass-card" style={{ padding: '30px', maxWidth: '600px', width: '100%', border: '1px solid rgba(239, 68, 68, 0.4)' }}>
+            <h2 style={{ color: '#ef4444', marginBottom: '16px' }}>UI Render Crash Detected</h2>
+            <pre style={{ background: 'rgba(0,0,0,0.5)', padding: '15px', borderRadius: '8px', color: '#fca5a5', overflowX: 'auto', fontSize: '0.85rem', marginBottom: '20px' }}>
+              {this.state.error && this.state.error.toString()}
+            </pre>
+            <pre style={{ background: 'rgba(0,0,0,0.5)', padding: '15px', borderRadius: '8px', color: '#9ca3af', overflowX: 'auto', fontSize: '0.75rem', marginBottom: '20px', maxHeight: '200px' }}>
+              {this.state.info && this.state.info.componentStack}
+            </pre>
+            <button 
+              onClick={() => { window.location.reload(); }}
+              style={{ padding: '12px 24px', background: '#ef4444', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function App() {
   return (
-    <BrowserRouter>
-      <BackgroundWrapper>
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/overview" element={<OverviewDashboard />} />
-          <Route path="/candidates" element={<CandidateSelection />} />
-          <Route path="/interviews" element={<InterviewHistory />} />
-          <Route path="/readiness" element={<InstructorReadinessView />} />
-          <Route path="/reports" element={<ReportsDashboard />} />
-          <Route path="/interview" element={<Interview />} />
-        </Routes>
-      </BackgroundWrapper>
-    </BrowserRouter>
+    <ErrorBoundary>
+      <BrowserRouter>
+        <BackgroundWrapper>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/overview" element={<OverviewDashboard />} />
+            <Route path="/candidates" element={<CandidateSelection />} />
+            <Route path="/interviews" element={<InterviewHistory />} />
+            <Route path="/readiness" element={<InstructorReadinessView />} />
+            <Route path="/reports" element={<ReportsDashboard />} />
+            <Route path="/interview" element={<Interview />} />
+          </Routes>
+        </BackgroundWrapper>
+      </BrowserRouter>
+    </ErrorBoundary>
   );
 }
 
