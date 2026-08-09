@@ -520,6 +520,9 @@ function CandidateSelection() {
   const [interviewerType, setInterviewerType] = useState('standard');
   const persona = 'socrates';
   
+  // Preview Candidate State
+  const [previewCandidate, setPreviewCandidate] = useState(null);
+  
   // Custom Candidate State
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customName, setCustomName] = useState('');
@@ -790,7 +793,7 @@ function CandidateSelection() {
               return (
                 <RevealOnScroll key={c.member.id || index} delay={(index % 10) * 0.04}>
                   <div 
-                    onClick={() => navigate('/interview', { state: { candidate: c, persona, interviewerType } })} 
+                    onClick={() => setPreviewCandidate(c)} 
                     className="candidate-grid-card"
                     style={{ 
                       padding: '22px',
@@ -952,6 +955,197 @@ function CandidateSelection() {
                   {submittingCustom ? 'Creating Candidate...' : 'Save & Start Interview'}
                 </button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {/* Candidate Preview Dossier & Modules Popup Modal */}
+        {previewCandidate && (
+          <div className="modal-backdrop" style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            backgroundColor: 'rgba(0,0,0,0.85)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 10000,
+            backdropFilter: 'blur(10px)'
+          }}>
+            <div className="glass-card" style={{
+              width: '500px',
+              padding: '28px',
+              borderRadius: '24px',
+              border: '1px solid rgba(244, 114, 182, 0.25)',
+              boxShadow: '0 24px 60px rgba(0,0,0,0.6), 0 0 20px rgba(244, 114, 182, 0.1)',
+              background: 'rgba(10,13,20,0.96)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '20px'
+            }}>
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '14px' }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '1.4rem', color: 'white', fontWeight: 'bold' }}>
+                    Candidate Dossier
+                  </h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                    Verify progress before launching technical panel
+                  </p>
+                </div>
+                <button 
+                  onClick={() => setPreviewCandidate(null)}
+                  style={{ background: 'transparent', border: 'none', color: '#64748b', fontSize: '1.25rem', cursor: 'pointer' }}
+                >✕</button>
+              </div>
+
+              {/* Candidate Info Cards */}
+              <div style={{ display: 'flex', gap: '14px', background: 'rgba(255,255,255,0.03)', padding: '14px', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)' }}>
+                <div className="candidate-avatar" style={{
+                  width: '52px', height: '52px', borderRadius: '14px',
+                  background: 'linear-gradient(135deg, #f472b6 0%, #f97316 100%)',
+                  color: 'white', fontWeight: 'bold', fontSize: '1.2rem',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 14px rgba(244, 114, 182, 0.3)'
+                }}>
+                  {previewCandidate.member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#f8fafc' }}>
+                    {previewCandidate.member.name}
+                  </span>
+                  <span style={{ fontSize: '0.85rem', color: '#f472b6', fontWeight: '600' }}>
+                    {previewCandidate.member.jobRole}
+                  </span>
+                  <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                    {previewCandidate.member.yearsExperience} YOE • {previewCandidate.member.education}
+                  </span>
+                </div>
+              </div>
+
+              {/* Progress Summary */}
+              {(() => {
+                const totalM = 31;
+                const passedM = previewCandidate.signals?.missionsCompleted || (previewCandidate.missions || []).filter(m => m.passed).length || 0;
+                const pct = Math.min(100, Math.round((passedM / totalM) * 100));
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: '#f8fafc', fontWeight: '500' }}>
+                      <span>Curriculum Completion</span>
+                      <span style={{ color: '#f97316', fontWeight: 'bold' }}>{pct}% ({passedM}/{totalM} Modules)</span>
+                    </div>
+                    <div style={{ width: '100%', height: '8px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                      <div style={{ 
+                        width: `${pct}%`, 
+                        height: '100%', 
+                        background: 'linear-gradient(90deg, #f472b6 0%, #f97316 100%)',
+                        boxShadow: '0 0 10px rgba(244, 114, 182, 0.4)'
+                      }} />
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Scrollable list of modules */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 'bold' }}>
+                  Module Breakdown
+                </span>
+                <div style={{ 
+                  maxHeight: '200px', 
+                  overflowY: 'auto', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '8px',
+                  paddingRight: '6px'
+                }} className="custom-scrollbar">
+                  {(previewCandidate.missions && previewCandidate.missions.length > 0) ? (
+                    previewCandidate.missions.map((m, idx) => (
+                      <div key={idx} style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        padding: '10px 12px', 
+                        borderRadius: '10px', 
+                        background: m.passed ? 'rgba(52, 211, 153, 0.08)' : m.skipped ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${m.passed ? 'rgba(52, 211, 153, 0.15)' : m.skipped ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255,255,255,0.04)'}`
+                      }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                          <span style={{ fontSize: '0.85rem', fontWeight: 'bold', color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '300px' }} title={m.title}>
+                            {m.title}
+                          </span>
+                          <span style={{ fontSize: '0.7rem', color: '#64748b' }}>
+                            Day {m.day} {m.attempts !== undefined && `• ${m.attempts} ${m.attempts === 1 ? 'try' : 'tries'}`}
+                          </span>
+                        </div>
+                        <span style={{ 
+                          fontSize: '0.7rem', 
+                          padding: '3px 8px', 
+                          borderRadius: '6px',
+                          fontWeight: 'bold',
+                          color: m.passed ? '#34d399' : m.skipped ? '#fb923c' : '#94a3b8',
+                          background: m.passed ? 'rgba(52, 211, 153, 0.12)' : m.skipped ? 'rgba(249, 115, 22, 0.12)' : 'rgba(255,255,255,0.06)'
+                        }}>
+                          {m.passed ? '✓ Passed' : m.skipped ? '→ Skipped' : 'In Progress'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', textAlign: 'center', padding: '20px 0' }}>
+                      No learning modules found for this candidate.
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
+                <button 
+                  type="button"
+                  onClick={() => setPreviewCandidate(null)}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    background: 'rgba(255,255,255,0.05)',
+                    color: '#e2e8f0',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                  onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="button"
+                  onClick={() => {
+                    const candidate = previewCandidate;
+                    setPreviewCandidate(null);
+                    navigate('/interview', { state: { candidate, persona, interviewerType } });
+                  }}
+                  style={{
+                    flex: 2,
+                    padding: '12px',
+                    borderRadius: '10px',
+                    border: 'none',
+                    background: 'linear-gradient(135deg, #f472b6 0%, #f97316 100%)',
+                    color: 'white',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 14px rgba(244,114,182,0.4)',
+                    transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={e => e.currentTarget.style.boxShadow = '0 6px 20px rgba(244,114,182,0.6)'}
+                  onMouseLeave={e => e.currentTarget.style.boxShadow = '0 4px 14px rgba(244,114,182,0.4)'}
+                >
+                  Continue to Interview →
+                </button>
+              </div>
             </div>
           </div>
         )}
