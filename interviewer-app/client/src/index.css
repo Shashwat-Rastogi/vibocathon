@@ -4,18 +4,18 @@
   --font-heading: 'Sora', sans-serif;
   --font-body: 'Manrope', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
-  --bg-dark: #050510;
-  --bg-gradient: radial-gradient(at 10% 10%, rgba(56, 189, 248, 0.25) 0px, transparent 50%), radial-gradient(at 90% 10%, rgba(236, 72, 153, 0.25) 0px, transparent 50%), radial-gradient(at 50% 90%, rgba(139, 92, 246, 0.25) 0px, transparent 50%);
+  --bg-dark: #030712;
+  --bg-gradient: radial-gradient(ellipse at 50% 10%, rgba(251, 191, 36, 0.15) 0%, rgba(3, 7, 18, 0.98) 100%);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
-  --accent: #ec4899;
-  --accent-hover: #f472b6;
-  --accent-cyan: #38bdf8;
-  --accent-violet: #a78bfa;
-  --glass-bg: rgba(13, 15, 30, 0.7);
-  --glass-border: rgba(236, 72, 153, 0.25);
-  --user-msg: rgba(236, 72, 153, 0.25);
-  --assistant-msg: rgba(56, 189, 248, 0.1);
+  --accent: #f59e0b;
+  --accent-hover: #fbbf24;
+  --accent-gold: #fbbf24;
+  --accent-emerald: #34d399;
+  --glass-bg: rgba(15, 23, 42, 0.7);
+  --glass-border: rgba(251, 191, 36, 0.22);
+  --user-msg: rgba(245, 158, 11, 0.18);
+  --assistant-msg: rgba(255, 255, 255, 0.05);
   font-family: var(--font-body);
 }
 
@@ -23,9 +23,9 @@ h1, h2, h3, h4, h5, h6, .candidate-name, .nav-item, .sidebar-logo, .hero-title, 
   font-family: var(--font-heading);
 }
 
-/* Gradient Text Headings for Holographic Effect */
+/* Gold Gradient Text Headings */
 .gradient-text, .hero-content h1, .dashboard-title h1 {
-  background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #fff 0%, #fbbf24 60%, #f59e0b 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -60,20 +60,20 @@ body {
   overflow-x: hidden;
 }
 
-/* Custom Holographic Scrollbar */
+/* Custom Gold Scrollbar */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: rgba(5, 5, 16, 0.9);
+  background: rgba(3, 7, 18, 0.95);
 }
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #ec4899 0%, #38bdf8 100%);
+  background: linear-gradient(180deg, #fbbf24 0%, #d97706 100%);
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #f472b6 0%, #7dd3fc 100%);
+  background: #fbbf24;
 }
 
 .container {
@@ -103,19 +103,33 @@ body {
 }
 
 .glass-card {
-  background: rgba(13, 15, 30, 0.7);
+  background: rgba(15, 23, 42, 0.7);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(236, 72, 153, 0.25);
+  border: 1px solid rgba(251, 191, 36, 0.22);
   border-radius: 16px;
-  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(251, 191, 36, 0.15);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(56, 189, 248, 0.6);
-  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.8), 0 0 30px rgba(236, 72, 153, 0.35), 0 0 15px rgba(56, 189, 248, 0.35);
+  border-color: rgba(251, 191, 36, 0.5);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.85), 0 0 25px rgba(245, 158, 11, 0.25);
   transform: translateY(-4px);
+}
+
+.primary-btn, .hero-btn {
+  background: linear-gradient(135deg, #fbbf24 0%, #d97706 100%) !important;
+  color: #030712 !important;
+  font-weight: 700 !important;
+  box-shadow: 0 4px 20px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4) !important;
+  border: none !important;
+  transition: all 0.3s ease !important;
+}
+
+.primary-btn:hover, .hero-btn:hover {
+  transform: translateY(-2px) scale(1.02) !important;
+  box-shadow: 0 8px 30px rgba(245, 158, 11, 0.5) !important;
 }
 
 /* Dashboard Layout */
