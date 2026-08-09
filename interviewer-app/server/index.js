@@ -78,9 +78,10 @@ app.post('/api/interview', async (req, res) => {
         if (candidate && !message) {
             session = {
                 candidate,
-                persona: req.body.persona || 'default',
+                persona: persona || 'socrates',
                 history: [], // { role: 'user' | 'model', parts: [{ text: '...' }] }
                 questionCount: 0,
+                userAnswerCount: 0,
                 coveredDays: new Set()
             };
             sessions.set(sessionId, session);
@@ -90,6 +91,7 @@ app.post('/api/interview', async (req, res) => {
 
         if (message) {
             session.history.push({ role: 'user', parts: [{ text: message }] });
+            session.userAnswerCount = (session.userAnswerCount || 0) + 1;
         } else {
             session.history.push({ role: 'user', parts: [{ text: "Hello, I am ready to begin the interview." }] });
         }
@@ -101,18 +103,11 @@ app.post('/api/interview', async (req, res) => {
 
         const progressStr = `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
 
-        // Determine if this is the final answer (user just submitted their 8th response)
-        const isFinalAnswer = session.questionCount >= 8;
-
         let systemInstruction = 
             getSystemPrompt(session.persona, session.candidate, ragContextStr, progressStr) + "\n\n" +
             SYSTEM_PROMPT_BASE_RULES + "\n\n" +
             `Candidate Profile:\n${JSON.stringify(session.candidate)}\n\n` +
             progressStr;
-
-        if (isFinalAnswer) {
-            systemInstruction += "\n\n[CRITICAL DIRECTIVE] The candidate has completed all 8 questions. Do NOT ask another technical question. Conclude the interview professionally, thank them for their time, and wrap up.";
-        }
 
         // 1. Conversational Call
         const reply = await generateContentWithFallback(
@@ -219,8 +214,8 @@ app.post('/api/interview', async (req, res) => {
             };
         }
 
-        // 2. Parse/Track logic (Secondary fast call) - skip if it is already final
-        if (!isFinalAnswer) {
+        // 2. Parse/Track logic - only if user gave a real answer (not the greeting)
+        if (message) {
             const parseCompletionText = await generateContentWithFallback(
                 'gemini-3.6-flash',
                 `Candidate Missions: ${JSON.stringify(session.candidate.missions.map(m=>({day:m.day, title:m.title})))}\n\nAssistant Reply: "${reply}"`,
@@ -241,8 +236,14 @@ app.post('/api/interview', async (req, res) => {
             }
         }
 
-        // 3. Check Done Condition (Evaluate if the final closing reply was just generated)
+        // 3. Check Done Condition — ONLY after parse/track updates the counter
+        // Guard: must have at least 8 questions asked AND at least 6 real user answers
+        const isFinalAnswer = session.questionCount >= 8 && (session.userAnswerCount || 0) >= 6;
+
         if (isFinalAnswer) {
+            // Update system instruction to close out — this message was already sent, so just note for logging
+            console.log(`Interview complete: ${session.questionCount} questions, ${session.userAnswerCount} user answers.`);
+            
             // Make separate LLM call for structured feedback JSON
             const feedbackCompletionText = await generateContentWithFallback(
                 'gemini-3.6-flash',
