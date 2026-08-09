@@ -1302,6 +1302,8 @@ body {
   width: 100%;
   height: 100%;
   z-index: 1;
+  transform: scale(1);
+  animation: bgZoom 10s ease-out forwards;
 }
 
 .splash-content {
@@ -1313,6 +1315,7 @@ body {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  animation: splashZoomIn 10s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
 }
 
 /* Prismatic 7-color text glow effect with geometric font Orbitron */
@@ -1337,7 +1340,7 @@ body {
   background-size: 200% auto !important;
   -webkit-background-clip: text !important;
   -webkit-text-fill-color: transparent !important;
-  animation: prismHueShift 4.5s linear infinite, prismReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  animation: prismHueShift 4.5s linear infinite, prismReveal 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards, prismTextFloat 6s ease-in-out infinite 1.4s !important;
   
   /* Layered 7-color soft drop shadow/glow matching refracted hues */
   filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.18)) 
@@ -1396,7 +1399,7 @@ body {
   object-fit: cover;
   border: 2px solid rgba(244, 114, 182, 0.45);
   box-shadow: 0 0 35px rgba(244, 114, 182, 0.35), 0 0 70px rgba(249, 115, 22, 0.2);
-  animation: prismLogoReveal 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: prismLogoReveal 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards, prismLogoFloat 6s ease-in-out infinite 1.6s;
 }
 
 @keyframes prismLogoReveal {
@@ -1407,6 +1410,49 @@ body {
   100% {
     opacity: 1;
     transform: scale(1) rotate(0deg);
+  }
+}
+
+/* --- CONTINUOUS MOTION EFFECTS --- */
+@keyframes bgZoom {
+  0% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+  20% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: scale(1.35);
+  }
+}
+
+@keyframes splashZoomIn {
+  0% {
+    transform: scale(0.9) translateZ(0);
+  }
+  100% {
+    transform: scale(1.1) translateZ(0);
+  }
+}
+
+@keyframes prismLogoFloat {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+    box-shadow: 0 0 35px rgba(244, 114, 182, 0.35), 0 0 70px rgba(249, 115, 22, 0.2);
+  }
+  50% {
+    transform: translateY(-14px) rotate(4deg);
+    box-shadow: 0 0 50px rgba(244, 114, 182, 0.5), 0 0 90px rgba(249, 115, 22, 0.35);
+  }
+}
+
+@keyframes prismTextFloat {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.02);
   }
 }
 
