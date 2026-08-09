@@ -322,6 +322,9 @@ function LandingPage() {
     <div className="landing-page-layout">
       <main className="hero-section">
         <div className="hero-content">
+          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#c084fc', fontWeight: '600' }}>
+            <span className="rag-pulse"></span> True RAG Vector Search Brain
+          </div>
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
             Conducts adaptive technical interviews based on a<br/>candidate's actual cohort progress.<br/><br/>
@@ -354,22 +357,20 @@ function LandingPage() {
             <img src="/logo.jpg" alt="AI Cohort Logo" className="floating-logo-img" />
           </div>
 
-          {stats && (
-            <div className="hero-stats">
-              <div className="stat-item">
-                <span className="stat-number">{stats.candidates}</span>
-                <span className="stat-label">Candidates</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">{stats.days}</span>
-                <span className="stat-label">Day Curriculum</span>
-              </div>
-              <div className="stat-item">
-                <span className="stat-number">True RAG</span>
-                <span className="stat-label">Vector Search Brain</span>
-              </div>
+          <div className="hero-stats">
+            <div className="stat-item">
+              <span className="stat-number">{stats?.candidates || 20}</span>
+              <span className="stat-label">Candidates</span>
             </div>
-          )}
+            <div className="stat-item">
+              <span className="stat-number">{stats?.days || 31}</span>
+              <span className="stat-label">Day Curriculum</span>
+            </div>
+            <div className="stat-item">
+              <span className="stat-number">768</span>
+              <span className="stat-label">Vector Embedding Dims</span>
+            </div>
+          </div>
         </div>
       </main>
 
@@ -1743,7 +1744,7 @@ function OverviewDashboard() {
           <RevealOnScroll delay={0.1}>
             <div className="glass-card" style={{ padding: '24px' }}>
               <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>Candidate Roster</div>
-              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>{stats?.candidates || 15}</div>
+              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>{stats?.candidates || 20}</div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }}></span>
                 Active Members
