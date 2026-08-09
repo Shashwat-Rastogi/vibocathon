@@ -638,6 +638,11 @@ function Interview() {
   const [ending, setEnding] = useState(false);
   const messagesEndRef = useRef(null);
   
+  const [activeSpeaker, setActiveSpeaker] = useState('Socrates');
+  const [analytics, setAnalytics] = useState({ confidenceScore: null, sentiment: null, technicalDensity: null });
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [pendingFeedback, setPendingFeedback] = useState(null);
+
   const initialized = useRef(false);
 
   useEffect(() => {
@@ -649,7 +654,7 @@ function Interview() {
     if (initialized.current) return;
     initialized.current = true;
 
-      const startInterview = async () => {
+    const startInterview = async () => {
       const newSessionId = crypto.randomUUID();
       setSessionId(newSessionId);
       setLoading(true);
@@ -672,9 +677,10 @@ function Interview() {
         });
         const data = await res.json();
         if (data.error) {
-          setMessages([{ role: 'assistant', content: `Server Error: ${data.error}` }]);
+          setMessages([{ role: 'assistant', content: `Server Error: ${data.error}`, speaker: 'Socrates' }]);
         } else {
-          setMessages([{ role: 'assistant', content: data.reply }]);
+          setMessages([{ role: 'assistant', content: data.reply, speaker: data.speaker || 'Socrates' }]);
+          if (data.speaker) setActiveSpeaker(data.speaker);
           if (data.ragSources) setRagActivity(data.ragSources);
         }
       } catch (err) {
@@ -709,19 +715,25 @@ function Interview() {
       const data = await res.json();
       
       if (data.error) {
-        setMessages(prev => [...prev, { role: 'assistant', content: `Server Error: ${data.error}` }]);
+        setMessages(prev => [...prev, { role: 'assistant', content: `Server Error: ${data.error}`, speaker: 'Socrates' }]);
       } else {
-        setMessages(prev => [...prev, { role: 'assistant', content: data.reply }]);
-        setQuestionCount(prev => prev + 1);
-        if (data.ragSources) setRagActivity(data.ragSources);
+        setMessages(prev => [...prev, { role: 'assistant', content: data.reply, speaker: data.speaker || 'Socrates' }]);
+        if (data.speaker) setActiveSpeaker(data.speaker);
+        if (data.analytics) setAnalytics(data.analytics);
+        
         if (data.done && data.feedback) {
-          setFeedback(data.feedback);
+          setPendingFeedback(data.feedback);
+          setShowCompletionModal(true);
+          
           const savedHistory = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
           const updatedHistory = savedHistory.map(h => 
             h.id === sessionId ? { ...h, feedback: data.feedback } : h
           );
           localStorage.setItem('interviewHistory', JSON.stringify(updatedHistory));
+        } else {
+          setQuestionCount(prev => prev + 1);
         }
+        if (data.ragSources) setRagActivity(data.ragSources);
       }
     } catch (err) {
       console.error(err);
@@ -733,21 +745,46 @@ function Interview() {
   if (!selectedCandidate) return null;
 
   return (
-    <div className="fullscreen-container">
-      <header className="chat-header glass-card" style={{ margin: '20px 10%', borderRadius: '16px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)' }}>
+    <div className="fullscreen-container" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <header className="chat-header glass-card" style={{ margin: '20px 10% 10px', borderRadius: '16px', background: 'rgba(0,0,0,0.6)', border: '1px solid rgba(255,255,255,0.1)', flexShrink: 0 }}>
         <div style={{ flex: 1 }}>
-          <h2 style={{ color: 'white' }}>Interviewing {selectedCandidate.member.name}</h2>
-          <div className="role-badge" style={{ color: '#94a3b8' }}>{selectedCandidate.member.jobRole}</div>
+          <h2 style={{ color: 'white', margin: '0 0 4px 0', fontSize: '1.2rem' }}>Interviewing {selectedCandidate.member.name}</h2>
+          <div className="role-badge" style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{selectedCandidate.member.jobRole}</div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', flex: 1, justifyContent: 'center' }}>
-          <div className="question-tracker">Question {Math.min(questionCount, 8)} / 8</div>
-          <div className="live-indicator">
-            <span className="live-dot"></span> LIVE INTERVIEW
+        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1, justifyContent: 'center' }}>
+          <div className="question-tracker" style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 'bold' }}>Question {Math.min(questionCount, 8)} / 8</div>
+          
+          <div className="panel-speakers" style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px 10px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
+            {[
+              { name: 'Socrates', role: 'Systems', icon: '🏛️', color: '#a78bfa' },
+              { name: 'Grace Hopper', role: 'Backend', icon: '💻', color: '#2dd4bf' },
+              { name: 'Sun Tzu', role: 'Strategy', icon: '🛡️', color: '#f43f5e' }
+            ].map(agent => {
+              const isActive = activeSpeaker === agent.name;
+              return (
+                <div key={agent.name} style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  opacity: isActive ? 1 : 0.4,
+                  transform: isActive ? 'scale(1.03)' : 'scale(0.97)',
+                  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                  padding: '3px 8px',
+                  borderRadius: '16px',
+                  background: isActive ? 'rgba(255,255,255,0.06)' : 'transparent',
+                  boxShadow: isActive ? `0 0 10px ${agent.color}25` : 'none'
+                }}>
+                  <span style={{ fontSize: '0.9rem' }}>{agent.icon}</span>
+                  <span style={{ fontSize: '0.75rem', color: isActive ? 'white' : '#94a3b8', fontWeight: isActive ? 'bold' : 'normal' }}>{agent.name}</span>
+                  {isActive && <span className="live-dot" style={{ background: agent.color, width: '5px', height: '5px', margin: 0 }} />}
+                </div>
+              );
+            })}
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: 1, justifyContent: 'flex-end' }}>
           {ragActivity.length > 0 && (
-            <div className="rag-indicator">
+            <div className="rag-indicator" style={{ display: 'flex', alignItems: 'center', gap: '6px', marginRight: '8px' }}>
               <span className="rag-pulse"></span>
               <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 'bold' }}>RAG</span>
             </div>
@@ -788,91 +825,298 @@ function Interview() {
             }} 
             disabled={ending}
             className="end-btn" 
-            style={{ color: 'white', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', cursor: ending ? 'wait' : 'pointer' }}
+            style={{ color: 'white', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', cursor: ending ? 'wait' : 'pointer', fontSize: '0.8rem', padding: '6px 14px' }}
           >
             {ending ? 'Evaluating...' : 'End Session'}
           </button>
         </div>
       </header>
-      
-      <div className="chat-window">
-        <div className="messages-area">
-          {messages.map((m, i) => (
-            <div key={i} className={`message-wrapper ${m.role}`}>
-              <div className="message">
-                {m.role === 'assistant' ? <FormattedMessage text={m.content} /> : m.content}
-              </div>
-            </div>
-          ))}
-          {loading && (
-            <div className="message-wrapper assistant">
-              <div className="message ai-thinking">
-                AI is thinking 
-                <span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
-              </div>
-            </div>
-          )}
-          <div ref={messagesEndRef} />
-        </div>
-        
-        {feedback ? (
-          <div className="feedback-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0 }}>Interview Completed</h3>
-              {feedback.score !== undefined && (
-                <div className="score-badge" style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '8px 16px', borderRadius: '20px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)' }}>Score: {feedback.score}/100</div>
-              )}
-            </div>
-            <p className="summary"><strong>Summary:</strong> {feedback.summary}</p>
-            <div className="feedback-grid">
-              <div className="feedback-section">
-                <h4>Strengths</h4>
-                <ul>{feedback.strengths.map((s,i) => <li key={i}>{s}</li>)}</ul>
-              </div>
-              <div className="feedback-section">
-                <h4>Gaps</h4>
-                <ul>{feedback.gaps.map((g,i) => <li key={i}>{g}</li>)}</ul>
-              </div>
-            </div>
-            <div className="feedback-section next-steps">
-              <h4>Next Steps</h4>
-              <ul>{feedback.next.map((n,i) => <li key={i}>{n}</li>)}</ul>
-            </div>
-            {feedback.revisionDeck && feedback.revisionDeck.length > 0 && (
-              <div className="feedback-section revision-deck" style={{ marginTop: '24px' }}>
-                <h4 style={{ color: '#a78bfa', marginBottom: '16px' }}>Revision Deck</h4>
-                <div className="flashcard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-                  {feedback.revisionDeck.map((card, i) => (
-                    <div key={i} className="flashcard glass-card" style={{ padding: '16px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
-                      <div className="flashcard-topic" style={{ fontWeight: 'bold', color: 'white', marginBottom: '8px', fontSize: '0.9rem', textTransform: 'uppercase' }}>{card.topic}</div>
-                      <div className="flashcard-concept" style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>{card.concept}</div>
+
+      {/* Two column grid layout for Sidebar Analytics + Chat Window */}
+      <div className="interview-layout" style={{
+        display: 'flex',
+        gap: '20px',
+        margin: '10px 10% 20px',
+        flex: 1,
+        minHeight: 0, // critical for nested flex overflows
+        alignItems: 'stretch'
+      }}>
+        {/* Left Column: Cognitive Analytics Widget */}
+        {!feedback && (
+          <div className="analytics-panel glass-card" style={{
+            width: '240px',
+            padding: '20px',
+            borderRadius: '16px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            flexShrink: 0,
+            background: 'rgba(7,9,14,0.65)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+            backdropFilter: 'blur(12px)',
+            justifyContent: 'flex-start'
+          }}>
+            <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#a78bfa', letterSpacing: '0.5px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Cognitive Profile</h3>
+            
+            {analytics.confidenceScore !== null ? (
+              <>
+                {/* Confidence ring */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Answer Confidence</span>
+                  <div style={{
+                    position: 'relative',
+                    width: '80px',
+                    height: '80px',
+                    borderRadius: '50%',
+                    background: `conic-gradient(#a78bfa ${analytics.confidenceScore}%, rgba(255,255,255,0.05) ${analytics.confidenceScore}%)`,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 0 12px rgba(167, 139, 250, 0.15)'
+                  }}>
+                    <div style={{
+                      width: '68px',
+                      height: '68px',
+                      borderRadius: '50%',
+                      backgroundColor: '#07090e',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}>
+                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white' }}>{analytics.confidenceScore}%</span>
                     </div>
-                  ))}
+                  </div>
                 </div>
+
+                {/* Cognitive Mood badge */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cognitive Mood</span>
+                  <div style={{
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '0.85rem',
+                    color: analytics.sentiment === 'Confident' ? '#2dd4bf' : analytics.sentiment === 'Analytical' ? '#a78bfa' : analytics.sentiment === 'Hesitant' ? '#fbbf24' : '#f87171',
+                    background: analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.08)' : analytics.sentiment === 'Analytical' ? 'rgba(167, 139, 250, 0.08)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.08)' : 'rgba(248, 113, 113, 0.08)',
+                    border: `1px solid ${analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.2)' : analytics.sentiment === 'Analytical' ? 'rgba(167, 139, 250, 0.2)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(248, 113, 113, 0.2)'}`
+                  }}>
+                    {analytics.sentiment}
+                  </div>
+                </div>
+
+                {/* Jargon density */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Technical Jargon</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                    {[1, 2, 3].map(level => {
+                      const active = (analytics.technicalDensity === 'High') || (analytics.technicalDensity === 'Medium' && level <= 2) || (analytics.technicalDensity === 'Low' && level === 1);
+                      return (
+                        <div key={level} style={{
+                          flex: 1,
+                          height: '6px',
+                          borderRadius: '3px',
+                          background: active ? '#a78bfa' : 'rgba(255,255,255,0.05)',
+                          boxShadow: active ? '0 0 6px rgba(167, 139, 250, 0.3)' : 'none',
+                          transition: 'all 0.3s ease'
+                        }} />
+                      );
+                    })}
+                  </div>
+                  <span style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'right', marginTop: '2px' }}>{analytics.technicalDensity} Jargon usage</span>
+                </div>
+              </>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '10px', opacity: 0.5, padding: '20px 0' }}>
+                <span style={{ fontSize: '1.5rem' }}>📊</span>
+                <p style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center', margin: 0, lineHeight: '1.4' }}>Awaiting candidate answer to analyze response metrics...</p>
               </div>
             )}
           </div>
-        ) : (
-          <div className="input-area">
-            <textarea 
-              value={input} 
-              onChange={e => {
-                setInput(e.target.value);
-                playTypingSound();
-              }}
-              onKeyDown={e => {
-                if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-                  sendMessage(e);
-                }
-              }}
-              placeholder="Type your response... (Cmd/Ctrl + Enter to send)" 
-              disabled={loading}
-              rows={1}
-            />
-            <button onClick={sendMessage} className="send-btn" disabled={loading || !input.trim()}>Send</button>
-          </div>
         )}
+
+        {/* Right Column: Chat Window and Input area */}
+        <div className="chat-window-wrapper" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', minWidth: 0 }}>
+          <div className="chat-window" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', margin: 0, width: '100%', overflow: 'hidden' }}>
+            <div className="messages-area" style={{ flex: 1, overflowY: 'auto' }}>
+              {messages.map((m, i) => (
+                <div key={i} className={`message-wrapper ${m.role}`}>
+                  {m.role === 'assistant' && m.speaker && (
+                    <div className="speaker-pill" style={{
+                      fontSize: '0.7rem',
+                      color: m.speaker === 'Socrates' ? '#a78bfa' : m.speaker === 'Grace Hopper' ? '#2dd4bf' : '#f43f5e',
+                      background: m.speaker === 'Socrates' ? 'rgba(139, 92, 246, 0.12)' : m.speaker === 'Grace Hopper' ? 'rgba(45, 212, 191, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+                      padding: '2px 8px',
+                      borderRadius: '10px',
+                      border: m.speaker === 'Socrates' ? '1px solid rgba(139, 92, 246, 0.25)' : m.speaker === 'Grace Hopper' ? '1px solid rgba(45, 212, 191, 0.25)' : '1px solid rgba(244, 63, 94, 0.25)',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      marginBottom: '6px',
+                      fontWeight: '600'
+                    }}>
+                      {m.speaker === 'Socrates' ? '🏛️ Socrates' : m.speaker === 'Grace Hopper' ? '💻 Grace Hopper' : '🛡️ Sun Tzu'}
+                    </div>
+                  )}
+                  <div className="message">
+                    {m.role === 'assistant' ? <FormattedMessage text={m.content} /> : m.content}
+                  </div>
+                </div>
+              ))}
+              {loading && (
+                <div className="message-wrapper assistant">
+                  <div className="message ai-thinking">
+                    AI is thinking 
+                    <span className="loading-dots"><span>.</span><span>.</span><span>.</span></span>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+            
+            {feedback ? (
+              <div className="feedback-card" style={{ overflowY: 'auto', maxHheight: '400px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ margin: 0 }}>Interview Completed</h3>
+                  {feedback.score !== undefined && (
+                    <div className="score-badge" style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '8px 16px', borderRadius: '20px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)' }}>Score: {feedback.score}/100</div>
+                  )}
+                </div>
+                <p className="summary"><strong>Summary:</strong> {feedback.summary}</p>
+                <div className="feedback-grid">
+                  <div className="feedback-section">
+                    <h4>Strengths</h4>
+                    <ul>{feedback.strengths.map((s,i) => <li key={i}>{s}</li>)}</ul>
+                  </div>
+                  <div className="feedback-section">
+                    <h4>Gaps</h4>
+                    <ul>{feedback.gaps.map((g,i) => <li key={i}>{g}</li>)}</ul>
+                  </div>
+                </div>
+                <div className="feedback-section next-steps">
+                  <h4>Next Steps</h4>
+                  <ul>{feedback.next.map((n,i) => <li key={i}>{n}</li>)}</ul>
+                </div>
+                {feedback.revisionDeck && feedback.revisionDeck.length > 0 && (
+                  <div className="feedback-section revision-deck" style={{ marginTop: '24px' }}>
+                    <h4 style={{ color: '#a78bfa', marginBottom: '16px' }}>Revision Deck</h4>
+                    <div className="flashcard-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+                      {feedback.revisionDeck.map((card, i) => (
+                        <div key={i} className="flashcard glass-card" style={{ padding: '12px', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+                          <div className="flashcard-topic" style={{ fontWeight: 'bold', color: 'white', marginBottom: '6px', fontSize: '0.85rem', textTransform: 'uppercase' }}>{card.topic}</div>
+                          <div className="flashcard-concept" style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.4' }}>{card.concept}</div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                <button 
+                  onClick={() => navigate('/overview')}
+                  className="primary-btn"
+                  style={{
+                    marginTop: '28px',
+                    width: '100%',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    fontSize: '0.95rem',
+                    fontWeight: 'bold',
+                    background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+                    color: 'white',
+                    border: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
+                  }}
+                >
+                  Return to Dashboard
+                </button>
+              </div>
+            ) : (
+              <div className="input-area">
+                <textarea 
+                  value={input} 
+                  onChange={e => {
+                    setInput(e.target.value);
+                    playTypingSound();
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                      sendMessage(e);
+                    }
+                  }}
+                  placeholder="Type your response... (Cmd/Ctrl + Enter to send)" 
+                  disabled={loading}
+                  rows={1}
+                />
+                <button onClick={sendMessage} className="send-btn" disabled={loading || !input.trim()}>Send</button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* Completion Modal Popup */}
+      {showCompletionModal && (
+        <div className="modal-backdrop" style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.85)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <div className="glass-card" style={{
+            width: '440px',
+            padding: '32px',
+            borderRadius: '20px',
+            border: '1px solid rgba(255,255,255,0.1)',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5)',
+            textAlign: 'center',
+            background: 'rgba(10,13,20,0.95)'
+          }}>
+            <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🏆</div>
+            <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px', fontSize: '1.25rem' }}>Technical Interview Completed!</h3>
+            <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: '1.5', marginBottom: '24px' }}>
+              The 3-Agent Panel evaluation has completed. A diagnostic report for <strong>{selectedCandidate.member.name}</strong> is ready.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button 
+                onClick={() => {
+                  setFeedback(pendingFeedback);
+                  setShowCompletionModal(false);
+                }}
+                className="primary-btn"
+                style={{ width: '100%', padding: '12px', fontSize: '0.95rem', fontWeight: 'bold' }}
+              >
+                View Detailed Evaluation Report
+              </button>
+              <button 
+                onClick={() => navigate('/overview')}
+                className="sec-btn"
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '0.95rem',
+                  background: 'rgba(255,255,255,0.05)',
+                  color: '#94a3b8',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
+              >
+                Return to Dashboard
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

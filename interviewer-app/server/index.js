@@ -101,11 +101,18 @@ app.post('/api/interview', async (req, res) => {
 
         const progressStr = `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
 
-        const systemInstruction = 
+        // Determine if this is the final answer (user just submitted their 8th response)
+        const isFinalAnswer = session.questionCount >= 8;
+
+        let systemInstruction = 
             getSystemPrompt(session.persona, session.candidate, ragContextStr, progressStr) + "\n\n" +
             SYSTEM_PROMPT_BASE_RULES + "\n\n" +
             `Candidate Profile:\n${JSON.stringify(session.candidate)}\n\n` +
             progressStr;
+
+        if (isFinalAnswer) {
+            systemInstruction += "\n\n[CRITICAL DIRECTIVE] The candidate has completed all 8 questions. Do NOT ask another technical question. Conclude the interview professionally, thank them for their time, and wrap up.";
+        }
 
         // 1. Conversational Call
         const reply = await generateContentWithFallback(
@@ -119,24 +126,91 @@ app.post('/api/interview', async (req, res) => {
 
         session.history.push({ role: 'model', parts: [{ text: reply }] });
 
-        // 2. Parse/Track logic (Secondary fast call)
-        const parseCompletionText = await generateContentWithFallback(
-            'gemini-3.6-flash',
-            `Candidate Missions: ${JSON.stringify(session.candidate.missions.map(m=>({day:m.day, title:m.title})))}\n\nAssistant Reply: "${reply}"`,
-            {
-                systemInstruction: 'Analyze the assistant\'s latest reply in the context of the technical interview. Determine if the assistant asked a new technical question. If yes, identify which curriculum day (integer) it primarily targets based on the candidate\'s missions. Output valid JSON only, exactly matching: { "isNewQuestion": boolean, "targetedDay": number | null }',
-                responseMimeType: "application/json",
-            }
-        );
-
-        const parsed = JSON.parse(parseCompletionText);
-        if (parsed.isNewQuestion && parsed.targetedDay) {
-            session.questionCount++;
-            session.coveredDays.add(parsed.targetedDay);
+        // Extract speaker from the reply
+        let speaker = "Socrates";
+        let cleanedReply = reply;
+        const speakerMatch = reply.match(/^\[(Socrates|Grace Hopper|Sun Tzu)\]/i);
+        if (speakerMatch) {
+            speaker = speakerMatch[1];
+            cleanedReply = reply.replace(/^\[(Socrates|Grace Hopper|Sun Tzu)\]\s*/i, "");
+        } else {
+            // Assign based on persona if tag is missing
+            if (session.persona === 'hopper') speaker = 'Grace Hopper';
+            else if (session.persona === 'sun-tzu') speaker = 'Sun Tzu';
         }
 
-        // 3. Check Done Condition
-        if (session.questionCount >= 8 && session.coveredDays.size >= 4) {
+        // Heuristic analytics on user's answer (if message is provided)
+        let analytics = null;
+        if (message) {
+            const lowerMsg = message.toLowerCase();
+            let confidence = 75;
+            const hedging = ["i think", "maybe", "not sure", "probably", "i guess", "kind of", "perhaps", "sort of", "would assume", "unclear", "unsure"];
+            const confident = ["definitely", "absolutely", "specifically", "critical", "designed", "implemented", "ensured", "optimized", "proved", "verified", "exactly"];
+            
+            hedging.forEach(phrase => {
+                if (lowerMsg.includes(phrase)) confidence -= 10;
+            });
+            confident.forEach(word => {
+                if (lowerMsg.includes(word)) confidence += 6;
+            });
+            confidence = Math.max(30, Math.min(100, confidence));
+
+            const techKeywords = [
+                "embedding", "vector", "chunking", "metadata", "similarity", "cosine", "rag", "agent", 
+                "orchestration", "fastapi", "sqlite", "chroma", "pinecone", "docker", "kubernetes", 
+                "mcp", "prompt", "peft", "lora", "fine-tuning", "cache", "latency", "concurrency", 
+                "streaming", "sse", "b-tree", "eval", "retrieval"
+            ];
+            let matchCount = 0;
+            techKeywords.forEach(keyword => {
+                if (lowerMsg.includes(keyword)) matchCount++;
+            });
+            let density = "Low";
+            if (matchCount >= 5) density = "High";
+            else if (matchCount >= 2) density = "Medium";
+
+            let sentiment = "Analytical";
+            if (confidence < 60) {
+                sentiment = "Hesitant";
+            } else if (confidence > 85) {
+                sentiment = "Confident";
+            } else if (lowerMsg.includes("depend") || lowerMsg.includes("tradeoff") || lowerMsg.includes("however")) {
+                sentiment = "Analytical";
+            } else if (lowerMsg.includes("just") || lowerMsg.includes("only") || lowerMsg.includes("simply")) {
+                sentiment = "Defensive";
+            }
+
+            analytics = {
+                confidenceScore: confidence,
+                sentiment,
+                technicalDensity: density
+            };
+        }
+
+        // 2. Parse/Track logic (Secondary fast call) - skip if it is already final
+        if (!isFinalAnswer) {
+            const parseCompletionText = await generateContentWithFallback(
+                'gemini-3.6-flash',
+                `Candidate Missions: ${JSON.stringify(session.candidate.missions.map(m=>({day:m.day, title:m.title})))}\n\nAssistant Reply: "${reply}"`,
+                {
+                    systemInstruction: 'Analyze the assistant\'s latest reply in the context of the technical interview. Determine if the assistant asked a new technical question. If yes, identify which curriculum day (integer) it primarily targets based on the candidate\'s missions. Output valid JSON only, exactly matching: { "isNewQuestion": boolean, "targetedDay": number | null }',
+                    responseMimeType: "application/json",
+                }
+            );
+
+            try {
+                const parsed = JSON.parse(parseCompletionText);
+                if (parsed.isNewQuestion && parsed.targetedDay) {
+                    session.questionCount++;
+                    session.coveredDays.add(parsed.targetedDay);
+                }
+            } catch (e) {
+                console.warn("Failed to parse question tracking JSON:", e.message);
+            }
+        }
+
+        // 3. Check Done Condition (Evaluate if the final closing reply was just generated)
+        if (isFinalAnswer) {
             // Make separate LLM call for structured feedback JSON
             const feedbackCompletionText = await generateContentWithFallback(
                 'gemini-3.6-flash',
@@ -160,14 +234,22 @@ app.post('/api/interview', async (req, res) => {
             });
 
             return res.json({
-                reply: reply,
+                reply: cleanedReply,
+                speaker,
+                analytics,
                 done: true,
                 feedback,
                 ragSources: retrievedChunks.map(c => c.id)
             });
         }
 
-        res.json({ reply, done: false, ragSources: retrievedChunks.map(c => c.id) });
+        res.json({ 
+            reply: cleanedReply, 
+            speaker,
+            analytics,
+            done: false, 
+            ragSources: retrievedChunks.map(c => c.id) 
+        });
 
     } catch (error) {
         console.error("API Error:", error);

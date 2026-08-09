@@ -28,15 +28,20 @@ export const rotateGeminiClient = () => {
 export const generateContentWithFallback = async (model, contents, config) => {
     let lastError = null;
 
-    // 1. Try Gemini Clients
+    // 1. Try Gemini Clients with a 5-second timeout
     for (let i = 0; i < geminiClients.length; i++) {
         const client = getGeminiClient();
         try {
-            const response = await client.models.generateContent({
-                model,
-                contents,
-                config
-            });
+            const response = await Promise.race([
+                client.models.generateContent({
+                    model,
+                    contents,
+                    config
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Gemini API call timed out after 5000ms")), 5000)
+                )
+            ]);
             return response.text;
         } catch (error) {
             console.warn(`Gemini Key ${currentGeminiIndex} failed:`, error.message);
@@ -195,10 +200,15 @@ export const embedContentWithFallback = async (query) => {
     for (let i = 0; i < geminiClients.length; i++) {
         const client = getGeminiClient();
         try {
-            const response = await client.models.embedContent({
-                model: 'text-embedding-004',
-                contents: query
-            });
+            const response = await Promise.race([
+                client.models.embedContent({
+                    model: 'text-embedding-004',
+                    contents: query
+                }),
+                new Promise((_, reject) => 
+                    setTimeout(() => reject(new Error("Gemini Embedding call timed out after 3000ms")), 3000)
+                )
+            ]);
             return response.embeddings[0].values;
         } catch (error) {
             console.warn(`Gemini Embedding Key ${currentGeminiIndex} failed:`, error.message);
