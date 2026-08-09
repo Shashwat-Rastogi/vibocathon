@@ -180,22 +180,21 @@ function LandingPage() {
           </p>
 
           <div className="hero-action-box glass-welcome-card">
-            {isLoggedIn ? (
-              <div className="action-box-inner">
-                <div className="action-text">Welcome back, {username}</div>
-                <button className="primary-btn hero-btn" onClick={() => navigate('/candidates')}>
-                  Select a Candidate &rarr;
-                </button>
+            <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+              {isLoggedIn && <div className="action-text">Welcome back, {username}</div>}
+              <button className="primary-btn hero-btn" onClick={() => navigate('/overview')}>
+                Enter AI System &rarr;
+              </button>
+              {isLoggedIn ? (
                 <button className="logout-text-link" onClick={handleLogout}>
                   Logout
                 </button>
-              </div>
-            ) : (
-              <div className="action-box-inner">
-                <div className="action-text">Interviewer Login</div>
-                <button className="primary-btn hero-btn" onClick={() => setShowModal(true)}>Login</button>
-              </div>
-            )}
+              ) : (
+                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#a78bfa', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.9rem' }}>
+                  Interviewer Login
+                </button>
+              )}
+            </div>
           </div>
           
           <div className="hero-logo-showcase floating-logo-container">
@@ -395,7 +394,7 @@ function CandidateSelection() {
       <aside className="dashboard-sidebar">
         <div className="sidebar-logo">AI Cohort Agent</div>
         <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate('/')}>
+          <div className="nav-item" onClick={() => navigate('/overview')}>
             <span>Overview</span>
           </div>
           <div className="nav-item active">
@@ -557,7 +556,7 @@ function InterviewHistory() {
       <aside className="dashboard-sidebar">
         <div className="sidebar-logo">AI Cohort Agent</div>
         <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate('/')}>
+          <div className="nav-item" onClick={() => navigate('/overview')}>
             <span>Overview</span>
           </div>
           <div className="nav-item" onClick={() => navigate('/candidates')}>
@@ -834,7 +833,7 @@ function ReportsDashboard() {
       <aside className="dashboard-sidebar">
         <div className="sidebar-logo">AI Cohort Agent</div>
         <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate('/')}>
+          <div className="nav-item" onClick={() => navigate('/overview')}>
             <span>Overview</span>
           </div>
           <div className="nav-item" onClick={() => navigate('/candidates')}>
@@ -920,6 +919,107 @@ function ReportsDashboard() {
   );
 }
 
+function OverviewDashboard() {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState(null);
+  const username = localStorage.getItem('interviewer_name') || 'Guest';
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/stats`)
+      .then(res => res.json())
+      .then(data => setStats(data))
+      .catch(console.error);
+  }, []);
+
+  return (
+    <div className="dashboard-container">
+      <aside className="dashboard-sidebar">
+        <div className="sidebar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
+          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', marginRight: '8px', verticalAlign: 'middle', objectFit: 'cover' }} />
+          AI Cohort Agent
+        </div>
+        <nav className="sidebar-nav">
+          <div className="nav-item active">
+            <span>Overview</span>
+          </div>
+          <div className="nav-item" onClick={() => navigate('/candidates')}>
+            <span>Candidates</span>
+          </div>
+          <div className="nav-item" onClick={() => navigate('/interviews')}>
+            <span>Interviews</span>
+          </div>
+          <div className="nav-item" onClick={() => navigate('/reports')}>
+            <span>Reports</span>
+          </div>
+        </nav>
+      </aside>
+
+      <main className="dashboard-main">
+        <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div className="dashboard-title">
+            <h1>System Overview</h1>
+            <p>Welcome back, <strong style={{ color: 'white' }}>{username}</strong>. Real-time candidate intelligence and cohort progress metrics.</p>
+          </div>
+          <button className="primary-btn hero-btn" style={{ padding: '10px 20px', fontSize: '0.95rem' }} onClick={() => navigate('/candidates')}>
+            Select Candidate &rarr;
+          </button>
+        </div>
+
+        {/* Stats Grid */}
+        <div className="stats-overview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+          <RevealOnScroll delay={0.1}>
+            <div className="glass-card" style={{ padding: '24px' }}>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Candidate Roster</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'white' }}>{stats?.candidates || 15}</div>
+              <div style={{ color: '#10b981', fontSize: '0.85rem', marginTop: '4px' }}>Active Cohort Members</div>
+            </div>
+          </RevealOnScroll>
+          <RevealOnScroll delay={0.2}>
+            <div className="glass-card" style={{ padding: '24px' }}>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Curriculum Scope</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#a78bfa' }}>{stats?.days || 31} Days</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>8 Comprehensive Modules</div>
+            </div>
+          </RevealOnScroll>
+          <RevealOnScroll delay={0.3}>
+            <div className="glass-card" style={{ padding: '24px' }}>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>RAG Engine</div>
+              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#38bdf8' }}>Active</div>
+              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>Vector Search Knowledge Base</div>
+            </div>
+          </RevealOnScroll>
+        </div>
+
+        {/* Quick Hub Navigation Cards */}
+        <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.4rem' }}>Quick Navigation Hub</h2>
+        <div className="hub-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
+          <RevealOnScroll delay={0.1}>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => navigate('/candidates')}>
+              <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px' }}>Candidates</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '16px' }}>View candidate profiles, completion signals, YOE, and launch customized technical interviews.</p>
+              <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '0.9rem' }}>Open Candidates &rarr;</span>
+            </div>
+          </RevealOnScroll>
+          <RevealOnScroll delay={0.2}>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => navigate('/interviews')}>
+              <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px' }}>Interview History</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '16px' }}>Review past interview logs, timestamps, and candidate roles filtered by interviewer.</p>
+              <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '0.9rem' }}>View History &rarr;</span>
+            </div>
+          </RevealOnScroll>
+          <RevealOnScroll delay={0.3}>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => navigate('/reports')}>
+              <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px' }}>Evaluation Reports</h3>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '16px' }}>Access AI-generated candidate scores, strengths/weaknesses, and revision decks.</p>
+              <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '0.9rem' }}>Explore Reports &rarr;</span>
+            </div>
+          </RevealOnScroll>
+        </div>
+      </main>
+    </div>
+  );
+}
+
 function BackgroundWrapper({ children }) {
   const location = useLocation();
   const isHome = location.pathname === '/';
@@ -927,6 +1027,7 @@ function BackgroundWrapper({ children }) {
   const isInterview = location.pathname === '/interview';
   const isInterviews = location.pathname === '/interviews';
   const isReports = location.pathname === '/reports';
+  const isOverview = location.pathname === '/overview';
   
   return (
     <>
@@ -935,7 +1036,7 @@ function BackgroundWrapper({ children }) {
           <DopaCore theme="colorful" count={12000} autoSpin={true} speedMult={1} />
         </div>
       )}
-      {(isCandidates || isInterviews || isReports) && (
+      {(isCandidates || isInterviews || isReports || isOverview) && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2 }}>
           <Antigravity
             count={250}
@@ -969,6 +1070,7 @@ function App() {
       <BackgroundWrapper>
         <Routes>
           <Route path="/" element={<LandingPage />} />
+          <Route path="/overview" element={<OverviewDashboard />} />
           <Route path="/candidates" element={<CandidateSelection />} />
           <Route path="/interviews" element={<InterviewHistory />} />
           <Route path="/reports" element={<ReportsDashboard />} />
