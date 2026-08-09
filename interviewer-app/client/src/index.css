@@ -5,15 +5,16 @@
   --font-body: 'Manrope', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   --bg-dark: #07090e;
-  --bg-gradient: radial-gradient(circle at 50% 20%, #111827 0%, #07090e 100%);
+  --bg-gradient: radial-gradient(ellipse at 50% 15%, rgba(30, 27, 75, 0.3) 0%, rgba(7, 9, 14, 0.95) 100%);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --accent: #8b5cf6;
   --accent-hover: #a78bfa;
-  --glass-bg: rgba(17, 24, 39, 0.65);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --user-msg: #2563eb;
-  --assistant-msg: rgba(255, 255, 255, 0.06);
+  --accent-neon: #34d399;
+  --glass-bg: rgba(15, 23, 42, 0.65);
+  --glass-border: rgba(167, 139, 250, 0.18);
+  --user-msg: rgba(37, 99, 235, 0.25);
+  --assistant-msg: rgba(255, 255, 255, 0.05);
   font-family: var(--font-body);
 }
 
@@ -46,6 +47,23 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow-x: hidden;
+}
+
+/* Custom Cyberpunk Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(7, 9, 14, 0.9);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(167, 139, 250, 0.3);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 139, 250, 0.7);
 }
 
 .container {
@@ -75,18 +93,19 @@ body {
 }
 
 .glass-card {
-  background: rgba(17, 24, 39, 0.65);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(167, 139, 250, 0.18);
   border-radius: 16px;
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(139, 92, 246, 0.25);
-  box-shadow: 0 16px 40px -10px rgba(139, 92, 246, 0.12);
+  border-color: rgba(167, 139, 250, 0.4);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), 0 0 25px rgba(139, 92, 246, 0.25);
+  transform: translateY(-3px);
 }
 
 /* Dashboard Layout */
