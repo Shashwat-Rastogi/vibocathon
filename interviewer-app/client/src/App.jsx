@@ -457,17 +457,6 @@ function CandidateSelection() {
               <option value="exp-asc">Experience (Low to High)</option>
               <option value="exp-desc">Experience (High to Low)</option>
             </select>
-            <select 
-              value={persona} 
-              onChange={e => setPersona(e.target.value)}
-              className="sort-select persona-select"
-              style={{ borderColor: 'var(--accent)' }}
-            >
-              <option value="socrates">Socrates (Philosophical)</option>
-              <option value="nietzsche">Friedrich Nietzsche (Intense)</option>
-              <option value="sun-tzu">Sun Tzu (Strategic)</option>
-              <option value="hopper">Grace Hopper (Pragmatic)</option>
-            </select>
           </div>
         </div>
 
