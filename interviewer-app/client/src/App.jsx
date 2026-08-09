@@ -362,18 +362,18 @@ function LandingPage() {
       <main className="hero-section">
         {/* Left Column: Core Hero Info */}
         <div className="hero-content">
-          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#38bdf8', fontWeight: '600', alignSelf: 'center', margin: '0 auto 16px' }}>
-            <span className="rag-pulse" style={{ background: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }}></span> True RAG Vector Search Brain
+          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(244, 114, 182, 0.12)', border: '1px solid rgba(244, 114, 182, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#f472b6', fontWeight: '600', alignSelf: 'center', margin: '0 auto 16px' }}>
+            <span className="rag-pulse" style={{ background: '#f472b6', boxShadow: '0 0 8px #f472b6' }}></span> True RAG Vector Search Brain
           </div>
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
             Conducts adaptive technical interviews calibrated dynamically against a candidate's actual curriculum progress and GitHub commit history.
           </p>
 
-          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(56, 189, 248, 0.2)', background: 'rgba(10, 10, 24, 0.7)', margin: '0 auto 30px' }}>
+          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(244, 114, 182, 0.25)', background: 'rgba(10, 10, 24, 0.7)', margin: '0 auto 30px' }}>
             <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center', width: '100%' }}>
               {isLoggedIn ? (
-                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc', width: '100%' }}>Active Interviewer: <strong style={{ color: '#38bdf8', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
+                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc', width: '100%' }}>Active Interviewer: <strong style={{ color: '#f97316', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
               ) : (
                 <div className="action-text" style={{ fontSize: '1rem', color: '#94a3b8', width: '100%' }}>Adaptive AI Panel Workspace</div>
               )}
@@ -389,7 +389,7 @@ function LandingPage() {
                   Switch Interviewer
                 </button>
               ) : (
-                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#38bdf8', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600, margin: '0 auto' }}>
+                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#f472b6', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600, margin: '0 auto' }}>
                   Set Interviewer Name
                 </button>
               )}
@@ -399,9 +399,9 @@ function LandingPage() {
 
         {/* Right Column: Live RAG System Monitor Panel (Fills the space beautifully!) */}
         <div className="hero-right-panel">
-          <div className="cognitive-core-card glass-card" style={{ border: '1px solid rgba(56, 189, 248, 0.2)', background: 'rgba(10, 10, 24, 0.75)' }}>
-            <h3 style={{ color: '#38bdf8', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', display: 'inline-block', boxShadow: '0 0 8px #34d399' }}></span>
+          <div className="cognitive-core-card glass-card" style={{ border: '1px solid rgba(244, 114, 182, 0.25)', background: 'rgba(10, 10, 24, 0.75)' }}>
+            <h3 style={{ color: '#f472b6', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#f472b6', display: 'inline-block', boxShadow: '0 0 8px #f472b6' }}></span>
               RAG Cognitive Core Monitor
             </h3>
             
@@ -412,25 +412,25 @@ function LandingPage() {
               </div>
               <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>Embed Dims</span>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>768 Dims</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f472b6', fontFamily: 'var(--font-mono)' }}>768 Dims</span>
               </div>
               <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>Curriculum</span>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#34d399', fontFamily: 'var(--font-mono)' }}>31 Days</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f97316', fontFamily: 'var(--font-mono)' }}>31 Days</span>
               </div>
               <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>RAG Engine</span>
-                <span style={{ fontSize: '1.05rem', fontWeight: 'bold', color: '#34d399', fontFamily: 'var(--font-heading)', display: 'block', marginTop: '4px' }}>Cosine Sim</span>
+                <span style={{ fontSize: '1.05rem', fontWeight: 'bold', color: '#f97316', fontFamily: 'var(--font-heading)', display: 'block', marginTop: '4px' }}>Cosine Sim</span>
               </div>
             </div>
 
             <div className="terminal-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(52,211,153,0.15)', paddingBottom: '4px', marginBottom: '6px', color: '#64748b', fontSize: '0.7rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(244,114,182,0.15)', paddingBottom: '4px', marginBottom: '6px', color: '#64748b', fontSize: '0.7rem' }}>
                 <span>Real-Time Index Logs</span>
                 <span>Active Agent</span>
               </div>
               {terminalLogs.map((log, lIdx) => (
-                <div key={lIdx} style={{ color: log.includes('[INIT]') ? '#38bdf8' : log.includes('[RAG]') ? '#38bdf8' : log.includes('[OK]') ? '#34d399' : '#e2e8f0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <div key={lIdx} style={{ color: log.includes('[INIT]') ? '#f97316' : log.includes('[RAG]') ? '#f472b6' : log.includes('[OK]') ? '#34d399' : '#e2e8f0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                   {log}
                 </div>
               ))}
