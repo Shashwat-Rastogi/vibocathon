@@ -51,8 +51,56 @@ const saveInterviewToDB = (record) => {
 // Initialize RAG embeddings in background
 initializeRAG();
 
+app.get('/api/curriculum', (req, res) => {
+    res.json(curriculum);
+});
+
 app.get('/api/candidates', (req, res) => {
     res.json(candidatesData.candidates);
+});
+
+app.post('/api/candidates', (req, res) => {
+    try {
+        const { name, jobRole, yearsExperience, education, missions, commitDays } = req.body;
+        if (!name || !jobRole) {
+            return res.status(400).json({ error: 'Name and jobRole are required' });
+        }
+        
+        const passedMissions = (missions || []).filter(m => m.passed);
+        const missionsCompleted = passedMissions.length;
+        const missionsFirstTry = passedMissions.filter(m => Number(m.attempts) === 1).length;
+        const finalCommitDays = commitDays !== undefined && commitDays !== '' ? Number(commitDays) : missionsCompleted;
+
+        const newCandidate = {
+            member: {
+                id: `custom_${Date.now()}`,
+                name: name.trim(),
+                jobRole: jobRole.trim(),
+                yearsExperience: Number(yearsExperience) || 0,
+                education: education?.trim() || "Custom Profile",
+                status: "active"
+            },
+            missions: missions || [],
+            signals: {
+                commitDays: finalCommitDays,
+                missionsCompleted,
+                missionsFirstTry
+            }
+        };
+
+        candidatesData.candidates.unshift(newCandidate);
+        
+        try {
+            fs.writeFileSync('./data/candidates.json', JSON.stringify(candidatesData, null, 2), 'utf8');
+        } catch (err) {
+            console.warn("Warning: Could not save candidates.json file, kept in memory:", err.message);
+        }
+
+        res.json({ success: true, candidate: newCandidate });
+    } catch (err) {
+        console.error("Error creating candidate:", err);
+        res.status(500).json({ error: err.message });
+    }
 });
 
 app.get('/api/stats', (req, res) => {
@@ -73,7 +121,7 @@ app.get('/api/interviews', (req, res) => {
 
 app.post('/api/interview', async (req, res) => {
     try {
-        const { sessionId, candidate, message, persona } = req.body;
+        const { sessionId, candidate, message, persona, interviewerType } = req.body;
         if (!sessionId) return res.status(400).json({ error: 'sessionId required' });
 
         // Input validation: cap message length, strip null bytes
@@ -86,6 +134,7 @@ app.post('/api/interview', async (req, res) => {
             session = {
                 candidate,
                 persona: persona || 'socrates',
+                interviewerType: interviewerType || 'standard',
                 history: [], // { role: 'user' | 'model', parts: [{ text: '...' }] }
                 questionCount: 0,
                 userAnswerCount: 0,
@@ -111,7 +160,7 @@ app.post('/api/interview', async (req, res) => {
         const progressStr = `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
 
         let systemInstruction = 
-            getSystemPrompt(session.persona, session.candidate, ragContextStr, progressStr) + "\n\n" +
+            getSystemPrompt(session.persona, session.candidate, ragContextStr, progressStr, session.interviewerType || 'standard') + "\n\n" +
             SYSTEM_PROMPT_BASE_RULES + "\n\n" +
             `Candidate Profile:\n${JSON.stringify(session.candidate)}\n\n` +
             progressStr;
@@ -280,6 +329,7 @@ app.post('/api/interview', async (req, res) => {
                 id: sessionId,
                 candidateName: session.candidate.member?.name,
                 role: session.candidate.jobRole,
+                interviewerType: session.interviewerType || 'standard',
                 timestamp: new Date().toISOString(),
                 status: 'completed',
                 questionsAnswered: session.questionCount,
@@ -342,6 +392,7 @@ app.post('/api/interview/end', async (req, res) => {
             candidateName: candidate.member?.name || candidateName,
             role: candidate.jobRole || role,
             interviewerName: interviewerName || 'Unknown',
+            interviewerType: session?.interviewerType || 'standard',
             timestamp: new Date().toISOString(),
             status: status || (questionCount >= 8 ? 'completed' : 'ended_early'),
             questionsAnswered: questionCount,

@@ -253,9 +253,10 @@ body {
 }
 
 .candidate-grid-card {
-  background: rgba(15, 23, 42, 0.5);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 16px;
   padding: 24px;
   display: flex;
@@ -268,10 +269,10 @@ body {
 }
 
 .candidate-grid-card:hover {
-  background: rgba(15, 23, 42, 0.7);
+  background: rgba(15, 23, 42, 0.75);
   transform: translateY(-4px);
-  border-color: rgba(139, 92, 246, 0.3);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(139, 92, 246, 0.05);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 20px rgba(139, 92, 246, 0.25);
 }
 
 .candidate-grid-card::before {
@@ -308,7 +309,7 @@ body {
   align-items: center;
   gap: 12px;
   margin-top: auto;
-  padding-top: 24px;
+  padding-top: 16px;
   justify-content: space-between;
 }
 
@@ -341,7 +342,7 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .candidate-avatar {
@@ -356,7 +357,7 @@ body {
   font-weight: 700;
   font-size: 1.1rem;
   color: white;
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.05);
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.1);
 }
 
 .candidate-status {
@@ -365,16 +366,17 @@ body {
   gap: 6px;
   font-size: 0.75rem;
   font-weight: 600;
-  color: #94a3b8;
+  color: #34d399;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .candidate-status-dot {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   background: #34d399;
   border-radius: 50%;
+  box-shadow: 0 0 8px rgba(52, 211, 153, 0.8), 0 0 3px #34d399;
 }
 
 /* Chat Interface */

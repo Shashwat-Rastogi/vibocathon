@@ -126,6 +126,102 @@ const RevealOnScroll = ({ children, delay = 0, className = "" }) => {
   );
 };
 
+const SidebarStatsPanel = () => {
+  const [candidates, setCandidates] = useState([]);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/candidates`)
+      .then(res => res.json())
+      .then(data => setCandidates(data))
+      .catch(console.error);
+  }, []);
+
+  if (!candidates || candidates.length === 0) return null;
+
+  const totalCandidates = candidates.length;
+  const totalCompleted = candidates.reduce((sum, c) => sum + (c.signals?.missionsCompleted || 0), 0);
+  const avgCompleted = Math.round(totalCompleted / totalCandidates);
+
+  const skippedCounts = {};
+  candidates.forEach(c => {
+    (c.missions || []).forEach(m => {
+      if (m.skipped) {
+        skippedCounts[m.day] = (skippedCounts[m.day] || 0) + 1;
+      }
+    });
+  });
+
+  let maxSkippedDay = 14;
+  let maxSkippedCount = -1;
+  Object.entries(skippedCounts).forEach(([day, count]) => {
+    if (count > maxSkippedCount) {
+      maxSkippedCount = count;
+      maxSkippedDay = day;
+    }
+  });
+
+  return (
+    <div className="sidebar-stats-card glass-card" style={{
+      marginTop: 'auto',
+      padding: '14px 16px',
+      borderRadius: '12px',
+      background: 'rgba(17, 24, 39, 0.55)',
+      backdropFilter: 'blur(16px)',
+      border: '1px solid rgba(255, 255, 255, 0.08)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '10px'
+    }}>
+      <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cohort Live Signals</div>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+        <span style={{ color: '#94a3b8' }}>Total Candidates</span>
+        <span style={{ color: 'white', fontWeight: 'bold' }}>{totalCandidates}</span>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+        <span style={{ color: '#94a3b8' }}>Avg Missions</span>
+        <span style={{ color: '#34d399', fontWeight: 'bold' }}>{avgCompleted}/31</span>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+        <span style={{ color: '#94a3b8' }}>Most Skipped</span>
+        <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>Day {maxSkippedDay}</span>
+      </div>
+    </div>
+  );
+};
+
+const Sidebar = ({ activePage }) => {
+  const navigate = useNavigate();
+  return (
+    <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
+      <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
+        <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+        <span>AI Cohort Agent</span>
+      </div>
+      <nav className="sidebar-nav">
+        <div className={`nav-item ${activePage === 'home' ? 'active' : ''}`} onClick={() => navigate('/')}>
+          <span>Home</span>
+        </div>
+        <div className={`nav-item ${activePage === 'overview' ? 'active' : ''}`} onClick={() => navigate('/overview')}>
+          <span>Overview</span>
+        </div>
+        <div className={`nav-item ${activePage === 'candidates' ? 'active' : ''}`} onClick={() => navigate('/candidates')}>
+          <span>Candidates</span>
+        </div>
+        <div className={`nav-item ${activePage === 'interviews' ? 'active' : ''}`} onClick={() => navigate('/interviews')}>
+          <span>Interviews</span>
+        </div>
+        <div className={`nav-item ${activePage === 'reports' ? 'active' : ''}`} onClick={() => navigate('/reports')}>
+          <span>Reports</span>
+        </div>
+      </nav>
+      <SidebarStatsPanel />
+    </aside>
+  );
+};
+
 function LandingPage() {
   const [stats, setStats] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -326,14 +422,19 @@ function CandidateSelection() {
   const [candidates, setCandidates] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [sortOrder, setSortOrder] = useState('name-asc');
-  const [persona, setPersona] = useState('socrates');
+  const [interviewerType, setInterviewerType] = useState('standard');
+  const persona = 'socrates';
   
   // Custom Candidate State
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [customName, setCustomName] = useState('');
   const [customRole, setCustomRole] = useState('');
-  const [customExp, setCustomExp] = useState(0);
-  const [customDay, setCustomDay] = useState(15);
+  const [customExp, setCustomExp] = useState(2);
+  const [customEdu, setCustomEdu] = useState("B.S. Computer Science");
+  const [customCommitDays, setCustomCommitDays] = useState('');
+  const [curriculumDays, setCurriculumDays] = useState([]);
+  const [missionSelections, setMissionSelections] = useState({});
+  const [submittingCustom, setSubmittingCustom] = useState(false);
   
   const navigate = useNavigate();
 
@@ -342,6 +443,11 @@ function CandidateSelection() {
       .then(res => res.json())
       .then(data => setCandidates(data))
       .catch(err => console.error("Error fetching candidates", err));
+
+    fetch(`${API_BASE}/api/curriculum`)
+      .then(res => res.json())
+      .then(data => setCurriculumDays(data.days || []))
+      .catch(err => console.error("Error fetching curriculum", err));
   }, []);
 
   const filteredAndSorted = candidates
@@ -354,66 +460,60 @@ function CandidateSelection() {
       return 0;
     });
 
-  const handleCustomSubmit = (e) => {
+  const handleCustomSubmit = async (e) => {
     e.preventDefault();
+    if (!customName.trim() || !customRole.trim() || submittingCustom) return;
+    setSubmittingCustom(true);
     
-    // Generate fake missions up to the chosen day
-    const generatedMissions = [];
-    for (let i = 1; i <= customDay; i++) {
-      generatedMissions.push({
-        day: i,
-        title: `Cohort Module ${i}`,
-        passed: true,
-        attempts: 1
-      });
-    }
-
-    const customCandidate = {
-      member: {
-        id: `custom_${Date.now()}`,
-        name: customName,
-        jobRole: customRole,
-        yearsExperience: customExp,
-        education: "Custom Input",
-        status: "active"
-      },
-      missions: generatedMissions,
-      signals: {
-        commitDays: Math.floor(customDay * 0.8),
-        missionsCompleted: customDay,
-        missionsFirstTry: Math.floor(customDay * 0.9)
+    const missions = [];
+    const daysList = curriculumDays.length > 0 ? curriculumDays : Array.from({ length: 31 }, (_, i) => ({ day: i + 1, topics: [`Module Day ${i + 1}`] }));
+    
+    daysList.forEach(d => {
+      const selection = missionSelections[d.day] || { status: 'passed', attempts: 1 };
+      if (selection.status === 'passed') {
+        missions.push({
+          day: d.day,
+          title: d.topics?.[0] || d.title || `Day ${d.day} Mission`,
+          passed: true,
+          attempts: Number(selection.attempts || 1)
+        });
+      } else if (selection.status === 'skipped') {
+        missions.push({
+          day: d.day,
+          title: d.topics?.[0] || d.title || `Day ${d.day} Mission`,
+          skipped: true
+        });
       }
-    };
+    });
 
-    setShowCustomModal(false);
-    navigate('/interview', { state: { candidate: customCandidate, persona } });
+    try {
+      const res = await fetch(`${API_BASE}/api/candidates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: customName,
+          jobRole: customRole,
+          yearsExperience: customExp,
+          education: customEdu,
+          missions,
+          commitDays: customCommitDays
+        })
+      });
+      const resData = await res.json();
+      if (resData.candidate) {
+        setCandidates(prev => [resData.candidate, ...prev]);
+      }
+    } catch (err) {
+      console.error("Error submitting custom candidate:", err);
+    } finally {
+      setSubmittingCustom(false);
+      setShowCustomModal(false);
+    }
   };
 
   return (
     <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
-          <span>AI Cohort Agent</span>
-        </div>
-        <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate('/')}>
-            <span>Home</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/overview')}>
-            <span>Overview</span>
-          </div>
-          <div className="nav-item active">
-            <span>Candidates</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/interviews')}>
-            <span>Interviews</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/reports')}>
-            <span>Reports</span>
-          </div>
-        </nav>
-      </aside>
+      <Sidebar activePage="candidates" />
 
       <main className="dashboard-main">
         <TargetCursor 
@@ -457,6 +557,16 @@ function CandidateSelection() {
               <option value="exp-asc">Experience (Low to High)</option>
               <option value="exp-desc">Experience (High to Low)</option>
             </select>
+            <select 
+              value={interviewerType} 
+              onChange={e => setInterviewerType(e.target.value)}
+              className="sort-select interviewer-type-select"
+              style={{ borderColor: 'rgba(139, 92, 246, 0.4)', background: 'rgba(139, 92, 246, 0.1)', color: '#c084fc', fontWeight: 'bold' }}
+            >
+              <option value="standard">Interviewer: Standard</option>
+              <option value="deep_dive">Interviewer: Deep Dive</option>
+              <option value="friendly">Interviewer: Friendly</option>
+            </select>
           </div>
         </div>
 
@@ -465,7 +575,7 @@ function CandidateSelection() {
             filteredAndSorted.map((c, index) => (
               <RevealOnScroll key={c.member.id} delay={(index % 10) * 0.1}>
                 <div 
-                  onClick={() => navigate('/interview', { state: { candidate: c, persona } })} 
+                  onClick={() => navigate('/interview', { state: { candidate: c, persona, interviewerType } })} 
                   className="candidate-grid-card"
                 >
                   <div className="candidate-header-row">
@@ -481,10 +591,27 @@ function CandidateSelection() {
                     <div className="candidate-name">{c.member.name}</div>
                     <div className="candidate-role">{c.member.jobRole}</div>
                   </div>
+
+                  {/* Completion Signal Progress Bar */}
+                  <div className="completion-signal" style={{ margin: '14px 0 8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px', fontWeight: '600' }}>
+                      <span>Cohort Progress</span>
+                      <span style={{ color: '#a78bfa' }}>{c.signals?.missionsCompleted || 0}/31 Missions</span>
+                    </div>
+                    <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${Math.min(100, Math.round(((c.signals?.missionsCompleted || 0) / 31) * 100))}%`,
+                        height: '100%',
+                        background: 'linear-gradient(90deg, #a78bfa 0%, #34d399 100%)',
+                        borderRadius: '3px',
+                        boxShadow: '0 0 8px rgba(167, 139, 250, 0.4)'
+                      }} />
+                    </div>
+                  </div>
+
                   <div className="candidate-stats">
                     <div style={{ display: 'flex', gap: '8px' }}>
                       <span className="experience-pill">{c.member.yearsExperience} YOE</span>
-                      <span className="experience-pill">{c.signals?.missionsCompleted || 0}/31 Missions</span>
                     </div>
                     <span className="start-action">Start Interview &rarr;</span>
                   </div>
@@ -498,33 +625,88 @@ function CandidateSelection() {
 
         {showCustomModal && (
           <div className="modal-overlay">
-            <div className="modal-content" style={{ maxWidth: '500px' }}>
+            <div className="modal-content" style={{ maxWidth: '640px', maxHeight: '85vh', overflowY: 'auto' }}>
               <button className="close-btn" onClick={() => setShowCustomModal(false)}>&times;</button>
               <form onSubmit={handleCustomSubmit} className="login-form" style={{ width: '100%', maxWidth: '100%' }}>
-                <h2 style={{ marginBottom: '24px', marginTop: 0, color: 'var(--text-primary)' }}>Custom Candidate</h2>
+                <h2 style={{ marginBottom: '16px', marginTop: 0, color: 'var(--text-primary)' }}>Create Custom Candidate</h2>
                 
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Name</label>
-                  <input type="text" className="login-input" value={customName} onChange={e => { setCustomName(e.target.value); playTypingSound(); }} required />
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Name</label>
+                    <input type="text" className="login-input" value={customName} onChange={e => setCustomName(e.target.value)} placeholder="Candidate Full Name" required />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Job Role</label>
+                    <input type="text" className="login-input" value={customRole} onChange={e => setCustomRole(e.target.value)} placeholder="e.g. AI Engineer" required />
+                  </div>
                 </div>
                 
-                <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Domain / Job Role</label>
-                  <input type="text" className="login-input" value={customRole} onChange={e => { setCustomRole(e.target.value); playTypingSound(); }} placeholder="e.g. Frontend Developer" required />
-                </div>
-                
-                <div style={{ display: 'flex', gap: '16px', marginBottom: '24px' }}>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Years of Exp.</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '12px', marginBottom: '20px' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>YOE</label>
                     <input type="number" className="login-input" value={customExp} onChange={e => setCustomExp(Number(e.target.value))} min="0" required />
                   </div>
-                  <div style={{ flex: 1 }}>
-                    <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-secondary)' }}>Cohort Day (1-31)</label>
-                    <input type="number" className="login-input" value={customDay} onChange={e => setCustomDay(Number(e.target.value))} min="1" max="31" required />
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Education</label>
+                    <input type="text" className="login-input" value={customEdu} onChange={e => setCustomEdu(e.target.value)} placeholder="e.g. B.S. CS" />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '6px', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Commit Days</label>
+                    <input type="number" className="login-input" value={customCommitDays} onChange={e => setCustomCommitDays(e.target.value)} placeholder="Auto" min="0" max="31" />
                   </div>
                 </div>
 
-                <button type="submit" className="login-btn">Start Custom Interview</button>
+                <h4 style={{ color: '#a78bfa', marginBottom: '10px', fontSize: '0.95rem' }}>Cohort Missions Checklist (Days 1–31)</h4>
+                <div style={{
+                  maxHeight: '240px',
+                  overflowY: 'auto',
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '10px',
+                  padding: '12px',
+                  background: 'rgba(0,0,0,0.3)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  marginBottom: '20px'
+                }}>
+                  {(curriculumDays.length > 0 ? curriculumDays : Array.from({ length: 31 }, (_, i) => ({ day: i + 1, topics: [`Module Day ${i + 1}`] }))).map(d => {
+                    const sel = missionSelections[d.day] || { status: 'passed', attempts: 1 };
+                    return (
+                      <div key={d.day} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', fontSize: '0.8rem', padding: '4px 8px', background: 'rgba(255,255,255,0.02)', borderRadius: '6px' }}>
+                        <span style={{ color: '#e2e8f0', flex: 1, textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                          <strong>Day {d.day}:</strong> {d.topics?.[0] || d.title || `Day ${d.day}`}
+                        </span>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <select 
+                            value={sel.status} 
+                            onChange={e => setMissionSelections(prev => ({ ...prev, [d.day]: { ...sel, status: e.target.value } }))}
+                            style={{ background: '#0a0d14', color: sel.status === 'passed' ? '#34d399' : sel.status === 'skipped' ? '#fbbf24' : '#94a3b8', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem' }}
+                          >
+                            <option value="passed">Passed</option>
+                            <option value="skipped">Skipped</option>
+                          </select>
+                          {sel.status === 'passed' && (
+                            <select 
+                              value={sel.attempts} 
+                              onChange={e => setMissionSelections(prev => ({ ...prev, [d.day]: { ...sel, attempts: Number(e.target.value) } }))}
+                              style={{ background: '#0a0d14', color: '#a78bfa', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '4px', padding: '2px 6px', fontSize: '0.75rem' }}
+                            >
+                              <option value="1">1 Try</option>
+                              <option value="2">2 Tries</option>
+                              <option value="3">3 Tries</option>
+                              <option value="4">4 Tries</option>
+                              <option value="5">5 Tries</option>
+                            </select>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <button type="submit" disabled={submittingCustom} className="login-btn">
+                  {submittingCustom ? 'Creating Candidate...' : 'Save & Start Interview'}
+                </button>
               </form>
             </div>
           </div>
@@ -537,6 +719,7 @@ function CandidateSelection() {
 function InterviewHistory() {
   const navigate = useNavigate();
   const [history, setHistory] = useState([]);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
@@ -559,47 +742,40 @@ function InterviewHistory() {
 
   return (
     <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
-          <span>AI Cohort Agent</span>
-        </div>
-        <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate('/')}>
-            <span>Home</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/overview')}>
-            <span>Overview</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/candidates')}>
-            <span>Candidates</span>
-          </div>
-          <div className="nav-item active">
-            <span>Interviews</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/reports')}>
-            <span>Reports</span>
-          </div>
-        </nav>
-      </aside>
+      <Sidebar activePage="interviews" />
 
       <main className="dashboard-main">
         <div className="dashboard-header">
           <div className="dashboard-title">
             <h1>Interview History</h1>
-            <p>A log of candidates you have previously interviewed.</p>
+            <p>A log of completed interview sessions recorded in the system.</p>
           </div>
         </div>
 
         <div className="candidate-grid">
           {history.length > 0 ? (
             history.map((h, i) => (
-              <div key={i} className="candidate-grid-card" style={{ cursor: 'default' }}>
-                <div className="candidate-info">
-                  <div className="candidate-name">{h.candidateName}</div>
-                  <div className="candidate-role">{h.role}</div>
+              <div key={h.id || i} className="candidate-grid-card" style={{ cursor: 'pointer' }} onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div className="candidate-info">
+                    <div className="candidate-name">{h.candidateName}</div>
+                    <div className="candidate-role">{h.role}</div>
+                  </div>
+                  <span style={{
+                    fontSize: '0.75rem',
+                    fontWeight: 'bold',
+                    padding: '4px 10px',
+                    borderRadius: '12px',
+                    textTransform: 'capitalize',
+                    background: h.interviewerType === 'deep_dive' ? 'rgba(239, 68, 68, 0.15)' : h.interviewerType === 'friendly' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(139, 92, 246, 0.15)',
+                    color: h.interviewerType === 'deep_dive' ? '#f87171' : h.interviewerType === 'friendly' ? '#34d399' : '#c084fc',
+                    border: `1px solid ${h.interviewerType === 'deep_dive' ? 'rgba(239,68,68,0.3)' : h.interviewerType === 'friendly' ? 'rgba(52,211,153,0.3)' : 'rgba(139,92,246,0.3)'}`
+                  }}>
+                    {h.interviewerType ? h.interviewerType.replace('_', ' ') : 'Standard'}
+                  </span>
                 </div>
-                <div className="candidate-stats" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+
+                <div className="candidate-stats" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
                   <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(h.timestamp).toLocaleString()}</span>
                   {h.status === 'ended_early' ? (
                     <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
@@ -607,14 +783,23 @@ function InterviewHistory() {
                     </span>
                   ) : (
                     <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
-                      Completed
+                      Completed ({h.questionsAnswered || 8}/8)
                     </span>
                   )}
                 </div>
+
+                {expandedId === h.id && h.feedback && (
+                  <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.1)', fontSize: '0.85rem', color: '#cbd5e1' }}>
+                    <p style={{ margin: '0 0 8px 0' }}><strong>Summary:</strong> {h.feedback.summary}</p>
+                    {h.feedback.score !== undefined && (
+                      <div style={{ color: '#a78bfa', fontWeight: 'bold' }}>Final Score: {h.feedback.score}/100</div>
+                    )}
+                  </div>
+                )}
               </div>
             ))
           ) : (
-            <div className="no-candidates">No interviews have been recorded yet.</div>
+            <div className="no-candidates">No interviews yet. Complete an interview to view logs here.</div>
           )}
         </div>
       </main>
@@ -1185,29 +1370,7 @@ function ReportsDashboard() {
 
   return (
     <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
-          <span>AI Cohort Agent</span>
-        </div>
-        <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate('/')}>
-            <span>Home</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/overview')}>
-            <span>Overview</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/candidates')}>
-            <span>Candidates</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/interviews')}>
-            <span>Interviews</span>
-          </div>
-          <div className="nav-item active">
-            <span>Reports</span>
-          </div>
-        </nav>
-      </aside>
+      <Sidebar activePage="reports" />
 
       <main className="dashboard-main">
         <div className="dashboard-header">
@@ -1220,7 +1383,7 @@ function ReportsDashboard() {
         <div className="reports-list" style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {history.length > 0 ? (
             history.map((h, i) => (
-              <RevealOnScroll key={h.id} delay={(i % 10) * 0.1}>
+              <RevealOnScroll key={h.id || i} delay={(i % 10) * 0.1}>
                 <div className="report-card glass-card" style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
@@ -1294,7 +1457,6 @@ function ReportsDashboard() {
 function OverviewDashboard() {
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
-  const username = localStorage.getItem('interviewer_name') || 'Guest';
 
   useEffect(() => {
     fetch(`${API_BASE}/api/stats`)
@@ -1305,52 +1467,32 @@ function OverviewDashboard() {
 
   return (
     <div className="dashboard-container">
-      <aside className="dashboard-sidebar">
-        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
-          <span>AI Cohort Agent</span>
-        </div>
-        <nav className="sidebar-nav">
-          <div className="nav-item" onClick={() => navigate('/')}>
-            <span>Home</span>
-          </div>
-          <div className="nav-item active">
-            <span>Overview</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/candidates')}>
-            <span>Candidates</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/interviews')}>
-            <span>Interviews</span>
-          </div>
-          <div className="nav-item" onClick={() => navigate('/reports')}>
-            <span>Reports</span>
-          </div>
-        </nav>
-      </aside>
+      <Sidebar activePage="overview" />
 
       <main className="dashboard-main">
         <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '36px' }}>
           <div className="dashboard-title">
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>System Overview</h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Welcome back, <strong style={{ color: '#f8fafc' }}>{username}</strong>. Real-time candidate intelligence and cohort metrics.</p>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>AI Cohort Technical Interview Agent</h1>
+            <p style={{ color: '#94a3b8', fontSize: '0.95rem', maxWidth: '650px', lineHeight: '1.5' }}>
+              Conducts personalized, adaptive multi-turn technical interviews based on a candidate's actual cohort progress, powered by real-time RAG context retrieval and cognitive analytics.
+            </p>
           </div>
           <button 
             style={{ 
-              padding: '10px 22px', 
-              fontSize: '0.9rem', 
-              fontWeight: 600, 
-              background: 'rgba(139, 92, 246, 0.12)', 
-              color: '#c084fc', 
-              border: '1px solid rgba(139, 92, 246, 0.3)', 
+              padding: '12px 26px', 
+              fontSize: '0.95rem', 
+              fontWeight: 'bold', 
+              background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)', 
+              color: 'white', 
+              border: 'none', 
               borderRadius: '10px', 
               cursor: 'pointer', 
-              transition: 'all 0.2s ease', 
+              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)',
               whiteSpace: 'nowrap' 
             }} 
             onClick={() => navigate('/candidates')}
           >
-            Select Candidate &rarr;
+            Select Candidate to Interview &rarr;
           </button>
         </div>
 
@@ -1377,10 +1519,10 @@ function OverviewDashboard() {
           </RevealOnScroll>
           <RevealOnScroll delay={0.3}>
             <div className="glass-card" style={{ padding: '24px' }}>
-              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>RAG Vector Index</div>
-              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>Operational</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>Questions Budget</div>
+              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>8 Questions</div>
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
-                True Vector Search
+                4+ Days Minimum Coverage
               </div>
             </div>
           </RevealOnScroll>
