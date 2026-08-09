@@ -1283,99 +1283,201 @@ function Interview() {
         minHeight: 0, // critical for nested flex overflows
         alignItems: 'stretch'
       }}>
-        {/* Left Column: Cognitive Analytics Widget */}
+        {/* Left Column: Sidebar with Module Progress + Cognitive Analytics */}
         {!feedback && (
-          <div className="analytics-panel glass-card" style={{
+          <div className="left-sidebar-wrapper" style={{
             width: '240px',
-            padding: '20px',
-            borderRadius: '16px',
             display: 'flex',
             flexDirection: 'column',
-            gap: '20px',
+            gap: '16px',
             flexShrink: 0,
-            background: 'rgba(7,9,14,0.65)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
-            backdropFilter: 'blur(12px)',
-            justifyContent: 'flex-start'
+            minHeight: 0
           }}>
-            <h3 style={{ margin: 0, fontSize: '0.9rem', color: '#f472b6', letterSpacing: '0.5px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '10px' }}>Cognitive Profile</h3>
-            
-            {analytics.confidenceScore !== null ? (
-              <>
-                {/* Confidence ring */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Answer Confidence</span>
-                  <div style={{
-                    position: 'relative',
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    background: `conic-gradient(#f472b6 ${analytics.confidenceScore}%, rgba(255,255,255,0.05) ${analytics.confidenceScore}%)`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '0 0 12px rgba(244, 114, 182, 0.25)'
-                  }}>
-                    <div style={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: '50%',
-                      backgroundColor: '#07090e',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}>
-                      <span style={{ fontSize: '1.25rem', fontWeight: 'bold', color: 'white' }}>{analytics.confidenceScore}%</span>
+            {/* Widget 1: Cohort Progress & Completed Modules */}
+            <div className="cohort-modules-panel glass-card" style={{
+              padding: '16px',
+              borderRadius: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+              background: 'rgba(7,9,14,0.65)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(12px)',
+            }}>
+              <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#f97316', letterSpacing: '0.5px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px', fontWeight: 'bold' }}>
+                Curriculum Progress
+              </h3>
+              
+              {/* Progress Percentage */}
+              {(() => {
+                const totalMissions = 31;
+                const completedCount = selectedCandidate.signals?.missionsCompleted || (selectedCandidate.missions || []).filter(m => m.passed).length || 0;
+                const progressPct = Math.min(100, Math.round((completedCount / totalMissions) * 100));
+                
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#f8fafc' }}>
+                      <span>Completed ({completedCount}/{totalMissions})</span>
+                      <span style={{ fontWeight: 'bold', color: '#f472b6' }}>{progressPct}%</span>
+                    </div>
+                    {/* Progress Bar */}
+                    <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.08)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ 
+                        width: `${progressPct}%`, 
+                        height: '100%', 
+                        background: 'linear-gradient(90deg, #f472b6 0%, #f97316 100%)',
+                        boxShadow: '0 0 8px rgba(244, 114, 182, 0.4)'
+                      }} />
                     </div>
                   </div>
+                );
+              })()}
+              
+              {/* Completed Modules List */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  Module Log
+                </span>
+                <div style={{ 
+                  maxHeight: '140px', 
+                  overflowY: 'auto', 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  gap: '6px',
+                  paddingRight: '4px'
+                }} className="custom-scrollbar">
+                  {(selectedCandidate.missions && selectedCandidate.missions.length > 0) ? (
+                    selectedCandidate.missions.map((m, idx) => (
+                      <div key={idx} style={{ 
+                        display: 'flex', 
+                        flexDirection: 'column', 
+                        gap: '2px', 
+                        padding: '6px 8px', 
+                        borderRadius: '8px', 
+                        background: m.passed ? 'rgba(52, 211, 153, 0.08)' : m.skipped ? 'rgba(249, 115, 22, 0.08)' : 'rgba(255,255,255,0.02)',
+                        border: `1px solid ${m.passed ? 'rgba(52, 211, 153, 0.15)' : m.skipped ? 'rgba(249, 115, 22, 0.15)' : 'rgba(255,255,255,0.04)'}`
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ fontSize: '0.75rem', fontWeight: 'bold', color: '#f8fafc', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }} title={m.title}>
+                            {m.title}
+                          </span>
+                          <span style={{ 
+                            fontSize: '0.6rem', 
+                            padding: '1px 6px', 
+                            borderRadius: '4px',
+                            fontWeight: 'bold',
+                            color: m.passed ? '#34d399' : m.skipped ? '#fb923c' : '#94a3b8',
+                            background: m.passed ? 'rgba(52, 211, 153, 0.1)' : m.skipped ? 'rgba(249, 115, 22, 0.1)' : 'rgba(255,255,255,0.05)'
+                          }}>
+                            {m.passed ? 'Passed' : m.skipped ? 'Skipped' : 'In Progress'}
+                          </span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: '#64748b' }}>
+                          <span>Day {m.day}</span>
+                          {m.attempts !== undefined && <span>{m.attempts} {m.attempts === 1 ? 'attempt' : 'attempts'}</span>}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <span style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'center', padding: '10px 0' }}>
+                      No modules registered
+                    </span>
+                  )}
                 </div>
-
-                {/* Cognitive Mood badge */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cognitive Mood</span>
-                  <div style={{
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    textAlign: 'center',
-                    fontWeight: 'bold',
-                    fontSize: '0.85rem',
-                    color: analytics.sentiment === 'Confident' ? '#2dd4bf' : analytics.sentiment === 'Analytical' ? '#f472b6' : analytics.sentiment === 'Hesitant' ? '#fbbf24' : '#f87171',
-                    background: analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.08)' : analytics.sentiment === 'Analytical' ? 'rgba(244, 114, 182, 0.08)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.08)' : 'rgba(248, 113, 113, 0.08)',
-                    border: `1px solid ${analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.2)' : analytics.sentiment === 'Analytical' ? 'rgba(244, 114, 182, 0.2)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(248, 113, 113, 0.2)'}`
-                  }}>
-                    {analytics.sentiment}
-                  </div>
-                </div>
-
-                {/* Jargon density */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Technical Jargon</span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
-                    {[1, 2, 3].map(level => {
-                      const active = (analytics.technicalDensity === 'High') || (analytics.technicalDensity === 'Medium' && level <= 2) || (analytics.technicalDensity === 'Low' && level === 1);
-                      return (
-                        <div key={level} style={{
-                          flex: 1,
-                          height: '6px',
-                          borderRadius: '3px',
-                          background: active ? '#f472b6' : 'rgba(255,255,255,0.05)',
-                          boxShadow: active ? '0 0 6px rgba(244, 114, 182, 0.4)' : 'none',
-                          transition: 'all 0.3s ease'
-                        }} />
-                      );
-                    })}
-                  </div>
-                  <span style={{ fontSize: '0.7rem', color: '#64748b', textAlign: 'right', marginTop: '2px' }}>{analytics.technicalDensity} Jargon usage</span>
-                </div>
-              </>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '10px', opacity: 0.5, padding: '20px 0' }}>
-                <span style={{ fontSize: '1.5rem' }}>📊</span>
-                <p style={{ fontSize: '0.75rem', color: '#94a3b8', textAlign: 'center', margin: 0, lineHeight: '1.4' }}>Awaiting candidate answer to analyze response metrics...</p>
               </div>
-            )}
+            </div>
+
+            {/* Widget 2: Cognitive Analytics */}
+            <div className="analytics-panel glass-card" style={{
+              padding: '16px',
+              borderRadius: '16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '16px',
+              background: 'rgba(7,9,14,0.65)',
+              border: '1px solid rgba(255,255,255,0.08)',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.4)',
+              backdropFilter: 'blur(12px)',
+            }}>
+              <h3 style={{ margin: 0, fontSize: '0.85rem', color: '#f472b6', letterSpacing: '0.5px', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '8px' }}>Cognitive Profile</h3>
+              
+              {analytics.confidenceScore !== null ? (
+                <>
+                  {/* Confidence ring */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Answer Confidence</span>
+                    <div style={{
+                      position: 'relative',
+                      width: '74px',
+                      height: '74px',
+                      borderRadius: '50%',
+                      background: `conic-gradient(#f472b6 ${analytics.confidenceScore}%, rgba(255,255,255,0.05) ${analytics.confidenceScore}%)`,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      boxShadow: '0 0 12px rgba(244, 114, 182, 0.25)'
+                    }}>
+                      <div style={{
+                        width: '62px',
+                        height: '62px',
+                        borderRadius: '50%',
+                        backgroundColor: '#07090e',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: 'white' }}>{analytics.confidenceScore}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Cognitive Mood badge */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Cognitive Mood</span>
+                    <div style={{
+                      padding: '6px 10px',
+                      borderRadius: '8px',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                      fontSize: '0.8rem',
+                      color: analytics.sentiment === 'Confident' ? '#2dd4bf' : analytics.sentiment === 'Analytical' ? '#f472b6' : analytics.sentiment === 'Hesitant' ? '#fbbf24' : '#f87171',
+                      background: analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.08)' : analytics.sentiment === 'Analytical' ? 'rgba(244, 114, 182, 0.08)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.08)' : 'rgba(248, 113, 113, 0.08)',
+                      border: `1px solid ${analytics.sentiment === 'Confident' ? 'rgba(45, 212, 191, 0.2)' : analytics.sentiment === 'Analytical' ? 'rgba(244, 114, 182, 0.2)' : analytics.sentiment === 'Hesitant' ? 'rgba(251, 191, 36, 0.2)' : 'rgba(248, 113, 113, 0.2)'}`
+                    }}>
+                      {analytics.sentiment}
+                    </div>
+                  </div>
+
+                  {/* Jargon density */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <span style={{ fontSize: '0.72rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Technical Jargon</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '2px' }}>
+                      {[1, 2, 3].map(level => {
+                        const active = (analytics.technicalDensity === 'High') || (analytics.technicalDensity === 'Medium' && level <= 2) || (analytics.technicalDensity === 'Low' && level === 1);
+                        return (
+                          <div key={level} style={{
+                            flex: 1,
+                            height: '6px',
+                            borderRadius: '3px',
+                            background: active ? '#f472b6' : 'rgba(255,255,255,0.05)',
+                            boxShadow: active ? '0 0 6px rgba(244, 114, 182, 0.4)' : 'none',
+                            transition: 'all 0.3s ease'
+                          }} />
+                        );
+                      })}
+                    </div>
+                    <span style={{ fontSize: '0.65rem', color: '#64748b', textAlign: 'right', marginTop: '2px' }}>{analytics.technicalDensity} Jargon usage</span>
+                  </div>
+                </>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '10px', opacity: 0.5, padding: '10px 0' }}>
+                  <span style={{ fontSize: '1.25rem' }}>📊</span>
+                  <p style={{ fontSize: '0.7rem', color: '#94a3b8', textAlign: 'center', margin: 0, lineHeight: '1.4' }}>Awaiting candidate answer to analyze response metrics...</p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
