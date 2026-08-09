@@ -1872,24 +1872,26 @@ function OverviewDashboard() {
       <main className="dashboard-main">
         <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '36px' }}>
           <div className="dashboard-title">
-            <h1 style={{ fontSize: '1.85rem', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>AI Cohort Technical Interview Agent</h1>
+            <h1 className="gradient-text" style={{ fontSize: '2.1rem', fontWeight: 700, marginBottom: '6px' }}>AI Cohort Technical Interview Agent</h1>
             <p style={{ color: '#94a3b8', fontSize: '0.95rem', maxWidth: '650px', lineHeight: '1.5' }}>
               Conducts personalized, adaptive multi-turn technical interviews based on a candidate's actual cohort progress, powered by real-time RAG context retrieval and cognitive analytics.
             </p>
           </div>
           <button 
             style={{ 
-              padding: '12px 26px', 
+              padding: '14px 28px', 
               fontSize: '0.95rem', 
               fontWeight: 'bold', 
-              background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)', 
-              color: 'white', 
+              background: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)', 
+              color: '#030712', 
               border: 'none', 
               borderRadius: '10px', 
               cursor: 'pointer', 
-              boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)',
-              whiteSpace: 'nowrap' 
+              boxShadow: '0 4px 18px rgba(245, 158, 11, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4)',
+              whiteSpace: 'nowrap',
+              transition: 'all 0.2s'
             }} 
+            className="primary-btn"
             onClick={() => navigate('/candidates')}
           >
             Select Candidate to Interview &rarr;
@@ -1899,29 +1901,29 @@ function OverviewDashboard() {
         {/* Stats Grid */}
         <div className="stats-overview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '40px' }}>
           <RevealOnScroll delay={0.1}>
-            <div className="glass-card" style={{ padding: '24px' }}>
+            <div className="glass-card" style={{ padding: '24px', border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.7)', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.7)' }}>
               <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>Candidate Roster</div>
-              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>{stats?.candidates || 20}</div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+              <div style={{ fontSize: '2.4rem', fontWeight: 700, color: '#fbbf24', marginBottom: '8px', fontFamily: 'var(--font-mono)' }}>{stats?.candidates || 20}</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(52, 211, 153, 0.12)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.25)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
                 <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }}></span>
                 Active Members
               </div>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.2}>
-            <div className="glass-card" style={{ padding: '24px' }}>
+            <div className="glass-card" style={{ padding: '24px', border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.7)', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.7)' }}>
               <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>Curriculum Scope</div>
-              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>{stats?.days || 31} <span style={{ fontSize: '1.25rem', color: '#94a3b8', fontWeight: 500 }}>Days</span></div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(168, 85, 247, 0.12)', color: '#c084fc', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+              <div style={{ fontSize: '2.4rem', fontWeight: 700, color: '#fbbf24', marginBottom: '8px', fontFamily: 'var(--font-mono)' }}>{stats?.days || 31} <span style={{ fontSize: '1.25rem', color: '#94a3b8', fontWeight: 500 }}>Days</span></div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(192, 132, 252, 0.12)', color: '#c084fc', border: '1px solid rgba(192, 132, 252, 0.25)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
                 8 Modules
               </div>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.3}>
-            <div className="glass-card" style={{ padding: '24px' }}>
+            <div className="glass-card" style={{ padding: '24px', border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.7)', boxShadow: '0 12px 36px rgba(0, 0, 0, 0.7)' }}>
               <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>Questions Budget</div>
-              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>8 Questions</div>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+              <div style={{ fontSize: '2.4rem', fontWeight: 700, color: '#fbbf24', marginBottom: '8px', fontFamily: 'var(--font-mono)' }}>8</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.25)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
                 4+ Days Minimum Coverage
               </div>
             </div>
@@ -1929,27 +1931,27 @@ function OverviewDashboard() {
         </div>
 
         {/* Quick Hub Navigation Cards */}
-        <h2 style={{ color: '#f8fafc', marginBottom: '20px', fontSize: '1.25rem', fontWeight: 700 }}>Quick Navigation Hub</h2>
+        <h2 style={{ color: '#f8fafc', marginBottom: '20px', fontSize: '1.25rem', fontWeight: 700, fontFamily: 'var(--font-heading)' }}>Quick Navigation Hub</h2>
         <div className="hub-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
           <RevealOnScroll delay={0.1}>
-            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer' }} onClick={() => navigate('/candidates')}>
-              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.15rem' }}>Candidates</h3>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', border: '1px solid rgba(251, 191, 36, 0.18)', background: 'rgba(15, 23, 42, 0.7)' }} onClick={() => navigate('/candidates')}>
+              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>Candidates</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>View candidate profiles, completion signals, YOE, and launch customized technical interviews.</p>
-              <span style={{ color: '#c084fc', fontWeight: 600, fontSize: '0.85rem' }}>Open Candidates &rarr;</span>
+              <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }}>Open Candidates &rarr;</span>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.2}>
-            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer' }} onClick={() => navigate('/interviews')}>
-              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.15rem' }}>Interview History</h3>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', border: '1px solid rgba(251, 191, 36, 0.18)', background: 'rgba(15, 23, 42, 0.7)' }} onClick={() => navigate('/interviews')}>
+              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>Interview History</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>Review past interview logs, timestamps, and candidate roles filtered by interviewer.</p>
-              <span style={{ color: '#c084fc', fontWeight: 600, fontSize: '0.85rem' }}>View History &rarr;</span>
+              <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }}>View History &rarr;</span>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.3}>
-            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer' }} onClick={() => navigate('/reports')}>
-              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.15rem' }}>Evaluation Reports</h3>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', border: '1px solid rgba(251, 191, 36, 0.18)', background: 'rgba(15, 23, 42, 0.7)' }} onClick={() => navigate('/reports')}>
+              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.2rem', fontFamily: 'var(--font-heading)' }}>Evaluation Reports</h3>
               <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>Access AI-generated candidate scores, strengths/weaknesses, and revision decks.</p>
-              <span style={{ color: '#c084fc', fontWeight: 600, fontSize: '0.85rem' }}>Explore Reports &rarr;</span>
+              <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.85rem' }}>Explore Reports &rarr;</span>
             </div>
           </RevealOnScroll>
         </div>
