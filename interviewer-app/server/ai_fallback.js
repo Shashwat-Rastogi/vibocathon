@@ -5,11 +5,15 @@ const httpsPost = (url, headers, body) => {
     return new Promise((resolve, reject) => {
         try {
             const urlObj = new URL(url);
+            const bodyBuffer = Buffer.from(body, 'utf8');
             const options = {
                 hostname: urlObj.hostname,
                 path: urlObj.pathname + urlObj.search,
                 method: 'POST',
-                headers: headers
+                headers: {
+                    ...headers,
+                    'Content-Length': bodyBuffer.length
+                }
             };
             const req = https.request(options, (res) => {
                 let data = '';
@@ -30,7 +34,7 @@ const httpsPost = (url, headers, body) => {
                 });
             });
             req.on('error', (err) => reject(err));
-            req.write(body);
+            req.write(bodyBuffer);
             req.end();
         } catch (e) {
             reject(e);
@@ -122,7 +126,7 @@ export const generateContentWithFallback = async (model, contents, config) => {
                 }
 
                 const groqBody = {
-                    model: 'llama-3.1-70b-versatile',
+                    model: 'llama-3.3-70b-versatile',
                     messages: groqMessages,
                     temperature: config?.temperature || 0.7,
                 };
@@ -184,19 +188,20 @@ export const generateContentWithFallback = async (model, contents, config) => {
         const maxRetries = 3;
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
             try {
-                const res = await fetch('https://api.freemodel.dev/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
+                const freeBody = JSON.stringify({
+                    model: 'gemini-1.5-pro',
+                    messages: openaiMessages,
+                    temperature: config?.temperature || 0.7,
+                    response_format: responseFormat
+                });
+                const res = await httpsPost(
+                    'https://api.freemodel.dev/v1/chat/completions',
+                    {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${freemodelKey}`
                     },
-                    body: JSON.stringify({
-                        model: 'gemini-1.5-pro',
-                        messages: openaiMessages,
-                        temperature: config?.temperature || 0.7,
-                        response_format: responseFormat
-                    })
-                });
+                    freeBody
+                );
 
                 if (!res.ok) {
                     const text = await res.text();
@@ -204,6 +209,7 @@ export const generateContentWithFallback = async (model, contents, config) => {
                 }
 
                 const data = await res.json();
+                console.log(`Freemodel succeeded on attempt ${attempt}!`);
                 return data.choices[0].message.content;
 
             } catch (error) {
