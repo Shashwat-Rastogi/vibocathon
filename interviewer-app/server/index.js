@@ -19,6 +19,31 @@ const curriculum = JSON.parse(fs.readFileSync('./data/curriculum.json', 'utf8'))
 const candidatesData = JSON.parse(fs.readFileSync('./data/candidates.json', 'utf8'));
 const sessions = new Map();
 
+const DB_FILE = './data/interviews.json';
+const getInterviewsFromDB = () => {
+    try {
+        if (!fs.existsSync(DB_FILE)) return [];
+        return JSON.parse(fs.readFileSync(DB_FILE, 'utf8') || '[]');
+    } catch {
+        return [];
+    }
+};
+
+const saveInterviewToDB = (record) => {
+    try {
+        const list = getInterviewsFromDB();
+        const existingIdx = list.findIndex(item => item.id === record.id);
+        if (existingIdx >= 0) {
+            list[existingIdx] = { ...list[existingIdx], ...record };
+        } else {
+            list.push(record);
+        }
+        fs.writeFileSync(DB_FILE, JSON.stringify(list, null, 2), 'utf8');
+    } catch (err) {
+        console.error("DB Save Error:", err);
+    }
+};
+
 // Initialize RAG embeddings in background
 initializeRAG();
 
@@ -31,6 +56,15 @@ app.get('/api/stats', (req, res) => {
         candidates: candidatesData.candidates.length,
         days: curriculum.days.length
     });
+});
+
+app.get('/api/interviews', (req, res) => {
+    const { interviewer } = req.query;
+    let list = getInterviewsFromDB();
+    if (interviewer) {
+        list = list.filter(item => item.interviewerName === interviewer);
+    }
+    res.json(list);
 });
 
 app.post('/api/interview', async (req, res) => {
@@ -114,6 +148,17 @@ app.post('/api/interview', async (req, res) => {
             );
             
             const feedback = JSON.parse(feedbackCompletionText);
+
+            saveInterviewToDB({
+                id: sessionId,
+                candidateName: session.candidate.member?.name,
+                role: session.candidate.jobRole,
+                timestamp: new Date().toISOString(),
+                status: 'completed',
+                questionsAnswered: session.questionCount,
+                feedback
+            });
+
             return res.json({
                 reply: reply,
                 done: true,
@@ -127,6 +172,51 @@ app.post('/api/interview', async (req, res) => {
     } catch (error) {
         console.error("API Error:", error);
         res.status(500).json({ error: error.message });
+    }
+});
+
+app.post('/api/interview/end', async (req, res) => {
+    try {
+        const { sessionId, interviewerName, candidateName, role, status } = req.body;
+        const session = sessions.get(sessionId);
+
+        let history = session?.history || [];
+        let candidate = session?.candidate || { member: { name: candidateName || 'Candidate' }, jobRole: role || 'Engineer' };
+        let questionCount = session?.questionCount || 0;
+
+        let feedbackPrompt = `Candidate: ${JSON.stringify(candidate)}\n\nTranscript:\n${JSON.stringify(history)}`;
+        if (status === 'ended_early') {
+            feedbackPrompt += `\n\nNOTE: The interviewer ended the session early after ${questionCount} questions. Evaluate the partial performance strictly based on the questions answered so far.`;
+        }
+
+        const feedbackCompletionText = await generateContentWithFallback(
+            'gemini-3.6-flash',
+            feedbackPrompt,
+            {
+                systemInstruction: SYSTEM_PROMPT_FEEDBACK,
+                responseMimeType: "application/json",
+            }
+        );
+
+        let feedback = JSON.parse(feedbackCompletionText);
+
+        const record = {
+            id: sessionId,
+            candidateName: candidate.member?.name || candidateName,
+            role: candidate.jobRole || role,
+            interviewerName: interviewerName || 'Unknown',
+            timestamp: new Date().toISOString(),
+            status: status || (questionCount >= 8 ? 'completed' : 'ended_early'),
+            questionsAnswered: questionCount,
+            feedback
+        };
+
+        saveInterviewToDB(record);
+
+        res.json({ success: true, record });
+    } catch (err) {
+        console.error("Error ending interview:", err);
+        res.status(500).json({ error: err.message });
     }
 });
 

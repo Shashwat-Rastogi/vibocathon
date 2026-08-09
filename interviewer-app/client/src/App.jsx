@@ -546,9 +546,21 @@ function InterviewHistory() {
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
-    const currentUser = localStorage.getItem('interviewer_name');
-    const myHistory = saved.filter(h => h.interviewerName === currentUser);
-    setHistory(myHistory.reverse());
+    const currentUser = localStorage.getItem('interviewer_name') || '';
+    
+    fetch(`${API_BASE}/api/interviews?interviewer=${encodeURIComponent(currentUser)}`)
+      .then(res => res.json())
+      .then(serverHistory => {
+        const mergedMap = new Map();
+        saved.forEach(item => mergedMap.set(item.id, item));
+        serverHistory.forEach(item => mergedMap.set(item.id, item));
+        const mergedList = Array.from(mergedMap.values()).filter(h => !currentUser || h.interviewerName === currentUser);
+        setHistory(mergedList.reverse());
+      })
+      .catch(() => {
+        const myHistory = saved.filter(h => !currentUser || h.interviewerName === currentUser);
+        setHistory(myHistory.reverse());
+      });
   }, []);
 
   return (
@@ -587,8 +599,17 @@ function InterviewHistory() {
                   <div className="candidate-name">{h.candidateName}</div>
                   <div className="candidate-role">{h.role}</div>
                 </div>
-                <div className="candidate-stats">
-                  <span>{new Date(h.timestamp).toLocaleString()}</span>
+                <div className="candidate-stats" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '12px' }}>
+                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(h.timestamp).toLocaleString()}</span>
+                  {h.status === 'ended_early' ? (
+                    <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+                      Ended Early ({h.questionsAnswered || 1}/8)
+                    </span>
+                  ) : (
+                    <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+                      Completed
+                    </span>
+                  )}
                 </div>
               </div>
             ))
@@ -614,6 +635,7 @@ function Interview() {
   const [feedback, setFeedback] = useState(null);
   const [ragActivity, setRagActivity] = useState([]);
   const [questionCount, setQuestionCount] = useState(1);
+  const [ending, setEnding] = useState(false);
   const messagesEndRef = useRef(null);
   
   const initialized = useRef(false);
@@ -730,7 +752,46 @@ function Interview() {
               <span style={{ fontSize: '0.75rem', color: '#a78bfa', fontWeight: 'bold' }}>RAG</span>
             </div>
           )}
-          <button onClick={() => navigate('/')} className="end-btn" style={{ color: 'white', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)' }}>End Session</button>
+          <button 
+            onClick={async () => {
+              if (ending) return;
+              setEnding(true);
+              try {
+                const res = await fetch(`${API_BASE}/api/interview/end`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    sessionId,
+                    interviewerName: localStorage.getItem('interviewer_name') || 'Unknown',
+                    candidateName: selectedCandidate.member.name,
+                    role: selectedCandidate.jobRole,
+                    status: questionCount >= 8 ? 'completed' : 'ended_early'
+                  })
+                });
+                const data = await res.json();
+                if (data.record && data.record.feedback) {
+                  setFeedback(data.record.feedback);
+                  const savedHistory = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
+                  const updatedHistory = savedHistory.map(h => 
+                    h.id === sessionId ? { ...h, status: data.record.status, questionsAnswered: data.record.questionsAnswered, feedback: data.record.feedback } : h
+                  );
+                  localStorage.setItem('interviewHistory', JSON.stringify(updatedHistory));
+                } else {
+                  navigate('/overview');
+                }
+              } catch (err) {
+                console.error(err);
+                navigate('/overview');
+              } finally {
+                setEnding(false);
+              }
+            }} 
+            disabled={ending}
+            className="end-btn" 
+            style={{ color: 'white', border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.1)', cursor: ending ? 'wait' : 'pointer' }}
+          >
+            {ending ? 'Evaluating...' : 'End Session'}
+          </button>
         </div>
       </header>
       
@@ -823,9 +884,21 @@ function ReportsDashboard() {
 
   useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('interviewHistory') || '[]');
-    const currentUser = localStorage.getItem('interviewer_name');
-    const myHistory = saved.filter(h => h.interviewerName === currentUser && h.feedback);
-    setHistory(myHistory.reverse());
+    const currentUser = localStorage.getItem('interviewer_name') || '';
+
+    fetch(`${API_BASE}/api/interviews?interviewer=${encodeURIComponent(currentUser)}`)
+      .then(res => res.json())
+      .then(serverHistory => {
+        const mergedMap = new Map();
+        saved.filter(h => h.feedback).forEach(item => mergedMap.set(item.id, item));
+        serverHistory.filter(h => h.feedback).forEach(item => mergedMap.set(item.id, item));
+        const mergedList = Array.from(mergedMap.values()).filter(h => !currentUser || h.interviewerName === currentUser);
+        setHistory(mergedList.reverse());
+      })
+      .catch(() => {
+        const myHistory = saved.filter(h => (!currentUser || h.interviewerName === currentUser) && h.feedback);
+        setHistory(myHistory.reverse());
+      });
   }, []);
 
   return (
@@ -863,7 +936,18 @@ function ReportsDashboard() {
                 <div className="report-card glass-card" style={{ padding: '24px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => setExpandedId(expandedId === h.id ? null : h.id)}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div>
-                      <h3 style={{ margin: '0 0 8px 0', color: 'white', fontSize: '1.2rem' }}>{h.candidateName} <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 'normal' }}>({h.role})</span></h3>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
+                        <h3 style={{ margin: 0, color: 'white', fontSize: '1.2rem' }}>{h.candidateName} <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', fontWeight: 'normal' }}>({h.role})</span></h3>
+                        {h.status === 'ended_early' ? (
+                          <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+                            Ended Early ({h.questionsAnswered || 1}/8)
+                          </span>
+                        ) : (
+                          <span style={{ background: 'rgba(16, 185, 129, 0.15)', color: '#34d399', border: '1px solid rgba(16, 185, 129, 0.3)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
+                            Completed
+                          </span>
+                        )}
+                      </div>
                       <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{new Date(h.timestamp).toLocaleString()}</div>
                     </div>
                     {h.feedback.score !== undefined && (
