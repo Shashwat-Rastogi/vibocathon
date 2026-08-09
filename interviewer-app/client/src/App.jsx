@@ -526,14 +526,21 @@ function CandidateSelection() {
   }, []);
 
   const filteredAndSorted = candidates
-    .filter(c => c.member.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    .filter(c => 
+      c.member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      c.member.jobRole.toLowerCase().includes(searchTerm.toLowerCase())
+    )
     .sort((a, b) => {
       if (sortOrder === 'name-asc') return a.member.name.localeCompare(b.member.name);
       if (sortOrder === 'name-desc') return b.member.name.localeCompare(a.member.name);
       if (sortOrder === 'exp-asc') return a.member.yearsExperience - b.member.yearsExperience;
       if (sortOrder === 'exp-desc') return b.member.yearsExperience - a.member.yearsExperience;
+      if (sortOrder === 'progress-desc') return (b.signals?.missionsCompleted || 0) - (a.signals?.missionsCompleted || 0);
       return 0;
     });
+
+  const avgYOE = candidates.length > 0 ? (candidates.reduce((sum, c) => sum + (c.member.yearsExperience || 0), 0) / candidates.length).toFixed(1) : 0;
+  const avgMissions = candidates.length > 0 ? Math.round(candidates.reduce((sum, c) => sum + (c.signals?.missionsCompleted || 0), 0) / candidates.length) : 0;
 
   const handleCustomSubmit = async (e) => {
     e.preventDefault();
@@ -592,45 +599,94 @@ function CandidateSelection() {
 
       <main className="dashboard-main">
         <TargetCursor 
-          targetSelector=".candidate-card, .dashboard-button, button, a" 
+          targetSelector=".candidate-grid-card, .dashboard-button, button, a" 
           cursorColor="#a78bfa" 
           cursorColorOnTarget="#fff"
         />
-        <div className="dashboard-header">
+        
+        <div className="dashboard-header" style={{ marginBottom: '24px' }}>
           <div className="dashboard-title">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', marginBottom: '16px' }}>
               <div>
-                <span className="workspace-label">AI INTERVIEW WORKSPACE</span>
-                <h1>Candidates</h1>
-                <p>Select a candidate to begin their adaptive technical interview.</p>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+                  <span className="rag-pulse" style={{ background: '#34d399' }}></span>
+                  <span className="workspace-label" style={{ margin: 0 }}>AI INTERVIEW WORKSPACE</span>
+                </div>
+                <h1 style={{ fontSize: '2.1rem', fontWeight: 700, margin: '4px 0 8px' }}>Candidates Roster</h1>
+                <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Select a candidate to initiate a dynamic, RAG-grounded technical interview.</p>
               </div>
               <button 
                 onClick={() => setShowCustomModal(true)} 
                 className="primary-btn" 
-                style={{ fontSize: '0.9rem', padding: '10px 24px', borderRadius: '8px', whiteSpace: 'nowrap', flexShrink: 0 }}
+                style={{
+                  fontSize: '0.9rem',
+                  padding: '12px 24px',
+                  borderRadius: '10px',
+                  whiteSpace: 'nowrap',
+                  flexShrink: 0,
+                  background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+                  boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
+                }}
               >
                 + Create Custom Candidate
               </button>
             </div>
           </div>
+
+          {/* Roster Quick Analytics Banner */}
+          <div className="glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 24px', borderRadius: '14px', marginBottom: '20px', background: 'rgba(15, 23, 42, 0.55)', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '32px' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '2px', letterSpacing: '0.05em' }}>Total Roster</span>
+                <strong style={{ fontSize: '1.25rem', color: '#f8fafc', fontFamily: 'var(--font-mono)' }}>{candidates.length} Candidates</strong>
+              </div>
+              <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.1)' }}></div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '2px', letterSpacing: '0.05em' }}>Avg Experience</span>
+                <strong style={{ fontSize: '1.25rem', color: '#34d399', fontFamily: 'var(--font-mono)' }}>{avgYOE} YOE</strong>
+              </div>
+              <div style={{ width: '1px', height: '28px', background: 'rgba(255,255,255,0.1)' }}></div>
+              <div>
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '2px', letterSpacing: '0.05em' }}>Avg Cohort Progress</span>
+                <strong style={{ fontSize: '1.25rem', color: '#c084fc', fontFamily: 'var(--font-mono)' }}>{avgMissions} / 31 Missions</strong>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>Interviewer Mode:</span>
+              <span style={{
+                padding: '4px 12px', borderRadius: '12px', fontSize: '0.8rem', fontWeight: 600,
+                background: interviewerType === 'deep_dive' ? 'rgba(239, 68, 68, 0.15)' : interviewerType === 'friendly' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(139, 92, 246, 0.15)',
+                color: interviewerType === 'deep_dive' ? '#f87171' : interviewerType === 'friendly' ? '#34d399' : '#c084fc',
+                border: `1px solid ${interviewerType === 'deep_dive' ? 'rgba(239,68,68,0.3)' : interviewerType === 'friendly' ? 'rgba(52,211,153,0.3)' : 'rgba(139,92,246,0.3)'}`
+              }}>
+                {interviewerType === 'deep_dive' ? 'Deep Dive 🔥' : interviewerType === 'friendly' ? 'Friendly 🤝' : 'Standard 🎯'}
+              </span>
+            </div>
+          </div>
           
-          <div className="filter-sort-bar">
-            <input 
-              type="text" 
-              placeholder="Search candidates by name..." 
-              value={searchTerm} 
-              onChange={e => setSearchTerm(e.target.value)} 
-              className="search-input"
-            />
+          <div className="filter-sort-bar" style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input 
+                type="text" 
+                placeholder="Search by candidate name or role..." 
+                value={searchTerm} 
+                onChange={e => setSearchTerm(e.target.value)} 
+                className="search-input"
+                style={{ width: '100%', paddingLeft: '40px' }}
+              />
+              <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', color: '#64748b', fontSize: '0.9rem' }}>🔍</span>
+            </div>
             <select 
               value={sortOrder} 
               onChange={e => setSortOrder(e.target.value)}
               className="sort-select"
             >
-              <option value="name-asc">Name (A-Z)</option>
-              <option value="name-desc">Name (Z-A)</option>
-              <option value="exp-asc">Experience (Low to High)</option>
-              <option value="exp-desc">Experience (High to Low)</option>
+              <option value="name-asc">Sort: Name (A-Z)</option>
+              <option value="name-desc">Sort: Name (Z-A)</option>
+              <option value="exp-asc">Sort: Experience (Low → High)</option>
+              <option value="exp-desc">Sort: Experience (High → Low)</option>
+              <option value="progress-desc">Sort: Cohort Progress (Highest)</option>
             </select>
             <select 
               value={interviewerType} 
@@ -647,52 +703,78 @@ function CandidateSelection() {
 
         <div className="candidate-grid">
           {filteredAndSorted.length > 0 ? (
-            filteredAndSorted.map((c, index) => (
-              <RevealOnScroll key={c.member.id} delay={(index % 10) * 0.1}>
-                <div 
-                  onClick={() => navigate('/interview', { state: { candidate: c, persona, interviewerType } })} 
-                  className="candidate-grid-card"
-                >
-                  <div className="candidate-header-row">
-                    <div className="candidate-avatar">
-                      {c.member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                    </div>
-                    <div className="candidate-status">
-                      <span className="candidate-status-dot"></span> Ready
-                    </div>
-                  </div>
-                  
-                  <div className="candidate-info">
-                    <div className="candidate-name">{c.member.name}</div>
-                    <div className="candidate-role">{c.member.jobRole}</div>
-                  </div>
+            filteredAndSorted.map((c, index) => {
+              const missionsCompleted = c.signals?.missionsCompleted || (c.missions || []).filter(m => m.passed).length || 0;
+              const progressPct = Math.min(100, Math.round((missionsCompleted / 31) * 100));
+              const initials = c.member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
 
-                  {/* Completion Signal Progress Bar */}
-                  <div className="completion-signal" style={{ margin: '14px 0 8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '4px', fontWeight: '600' }}>
-                      <span>Cohort Progress</span>
-                      <span style={{ color: '#a78bfa' }}>{c.signals?.missionsCompleted || 0}/31 Missions</span>
+              return (
+                <RevealOnScroll key={c.member.id || index} delay={(index % 10) * 0.05}>
+                  <div 
+                    onClick={() => navigate('/interview', { state: { candidate: c, persona, interviewerType } })} 
+                    className="candidate-grid-card"
+                    style={{ padding: '22px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', background: 'rgba(15, 23, 42, 0.55)', transition: 'all 0.3s ease' }}
+                  >
+                    <div className="candidate-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="candidate-avatar" style={{
+                          width: '42px', height: '42px', borderRadius: '12px',
+                          background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+                          color: 'white', fontWeight: 'bold', fontSize: '1rem',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
+                        }}>
+                          {initials}
+                        </div>
+                        <div>
+                          <div className="candidate-name" style={{ fontSize: '1.15rem', color: '#f8fafc', fontWeight: 700 }}>{c.member.name}</div>
+                          <div className="candidate-role" style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{c.member.jobRole}</div>
+                        </div>
+                      </div>
+                      <span className="experience-pill" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '14px', background: 'rgba(255,255,255,0.06)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
+                        {c.member.yearsExperience} YOE
+                      </span>
                     </div>
-                    <div style={{ width: '100%', height: '5px', background: 'rgba(255,255,255,0.06)', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{
-                        width: `${Math.min(100, Math.round(((c.signals?.missionsCompleted || 0) / 31) * 100))}%`,
-                        height: '100%',
-                        background: 'linear-gradient(90deg, #a78bfa 0%, #34d399 100%)',
-                        borderRadius: '3px',
-                        boxShadow: '0 0 8px rgba(167, 139, 250, 0.4)'
-                      }} />
-                    </div>
-                  </div>
 
-                  <div className="candidate-stats">
-                    <div style={{ display: 'flex', gap: '8px' }}>
-                      <span className="experience-pill">{c.member.yearsExperience} YOE</span>
+                    {/* Completion Signal Progress Bar */}
+                    <div className="completion-signal" style={{ margin: '12px 0 14px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
+                        <span>Cohort Progress</span>
+                        <span style={{ color: '#a78bfa', fontFamily: 'var(--font-mono)' }}>{missionsCompleted}/31 Missions ({progressPct}%)</span>
+                      </div>
+                      <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
+                        <div style={{
+                          width: `${progressPct}%`,
+                          height: '100%',
+                          background: progressPct >= 80 ? 'linear-gradient(90deg, #a78bfa 0%, #34d399 100%)' : 'linear-gradient(90deg, #a78bfa 0%, #fbbf24 100%)',
+                          borderRadius: '4px',
+                          boxShadow: '0 0 8px rgba(167, 139, 250, 0.4)'
+                        }} />
+                      </div>
                     </div>
-                    <span className="start-action">Start Interview &rarr;</span>
+
+                    {/* Candidate Signal Tags */}
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
+                      {c.signals?.missionsFirstTry !== undefined && (
+                        <span style={{ fontSize: '0.7rem', color: '#34d399', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                          {c.signals.missionsFirstTry} First Try
+                        </span>
+                      )}
+                      {c.signals?.commitDays !== undefined && (
+                        <span style={{ fontSize: '0.7rem', color: '#c084fc', background: 'rgba(139, 92, 246, 0.1)', padding: '2px 8px', borderRadius: '8px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                          {c.signals.commitDays} Commit Days
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="candidate-stats" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.member.education || 'CS Degree'}</span>
+                      <span className="start-action" style={{ color: '#c084fc', fontWeight: 'bold', fontSize: '0.85rem' }}>Start Interview &rarr;</span>
+                    </div>
                   </div>
-                </div>
-              </RevealOnScroll>
-            ))
+                </RevealOnScroll>
+              );
+            })
           ) : (
             <div className="no-candidates">No candidates found matching your criteria.</div>
           )}
