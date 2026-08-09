@@ -752,7 +752,7 @@ function Interview() {
           <div className="role-badge" style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{selectedCandidate.member.jobRole}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1, justifyContent: 'center' }}>
-          <div className="question-tracker" style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 'bold' }}>Question {Math.min(questionCount, 8)} / 8</div>
+          <div className="question-tracker" style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 'bold', whiteSpace: 'nowrap' }}>Question {Math.min(questionCount, 8)}/8</div>
           
           <div className="panel-speakers" style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px 10px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
             {[
@@ -977,12 +977,31 @@ function Interview() {
             </div>
             
             {feedback ? (
-              <div className="feedback-card" style={{ overflowY: 'auto', maxHheight: '400px' }}>
+              <div className="feedback-card" style={{ overflowY: 'auto', maxHeight: '400px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ margin: 0 }}>Interview Completed</h3>
-                  {feedback.score !== undefined && (
-                    <div className="score-badge" style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '8px 16px', borderRadius: '20px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)' }}>Score: {feedback.score}/100</div>
-                  )}
+                  <h3 style={{ margin: 0, color: '#a78bfa' }}>📋 Interview Report</h3>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    {feedback.score !== undefined && (
+                      <div className="score-badge" style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '6px 14px', borderRadius: '20px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)', fontSize: '0.85rem' }}>Score: {feedback.score}/100</div>
+                    )}
+                    <button
+                      title="Close report & return to interview chat"
+                      onClick={() => setFeedback(null)}
+                      style={{
+                        background: 'rgba(255,255,255,0.06)',
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: '8px',
+                        color: '#94a3b8',
+                        cursor: 'pointer',
+                        fontSize: '1rem',
+                        padding: '4px 10px',
+                        lineHeight: '1.4',
+                        transition: 'all 0.2s',
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background='rgba(255,255,255,0.12)'; e.currentTarget.style.color='white'; }}
+                      onMouseLeave={e => { e.currentTarget.style.background='rgba(255,255,255,0.06)'; e.currentTarget.style.color='#94a3b8'; }}
+                    >✕ Back to Chat</button>
+                  </div>
                 </div>
                 <p className="summary"><strong>Summary:</strong> {feedback.summary}</p>
                 <div className="feedback-grid">
