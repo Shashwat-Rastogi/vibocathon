@@ -370,10 +370,10 @@ function LandingPage() {
             Conducts adaptive technical interviews calibrated dynamically against a candidate's actual curriculum progress and GitHub commit history.
           </p>
 
-          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(192, 132, 252, 0.25)', background: 'rgba(10, 10, 24, 0.7)', margin: '0 auto 30px' }}>
+          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(56, 189, 248, 0.2)', background: 'rgba(10, 10, 24, 0.7)', margin: '0 auto 30px' }}>
             <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center', width: '100%' }}>
               {isLoggedIn ? (
-                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc', width: '100%' }}>Active Interviewer: <strong style={{ color: '#c084fc', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
+                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc', width: '100%' }}>Active Interviewer: <strong style={{ color: '#38bdf8', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
               ) : (
                 <div className="action-text" style={{ fontSize: '1rem', color: '#94a3b8', width: '100%' }}>Adaptive AI Panel Workspace</div>
               )}
@@ -389,7 +389,7 @@ function LandingPage() {
                   Switch Interviewer
                 </button>
               ) : (
-                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#c084fc', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600, margin: '0 auto' }}>
+                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#38bdf8', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600, margin: '0 auto' }}>
                   Set Interviewer Name
                 </button>
               )}
@@ -399,8 +399,8 @@ function LandingPage() {
 
         {/* Right Column: Live RAG System Monitor Panel (Fills the space beautifully!) */}
         <div className="hero-right-panel">
-          <div className="cognitive-core-card glass-card" style={{ border: '1px solid rgba(192, 132, 252, 0.25)', background: 'rgba(10, 10, 24, 0.75)' }}>
-            <h3 style={{ color: '#c084fc', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+          <div className="cognitive-core-card glass-card" style={{ border: '1px solid rgba(56, 189, 248, 0.2)', background: 'rgba(10, 10, 24, 0.75)' }}>
+            <h3 style={{ color: '#38bdf8', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', display: 'inline-block', boxShadow: '0 0 8px #34d399' }}></span>
               RAG Cognitive Core Monitor
             </h3>
@@ -416,7 +416,7 @@ function LandingPage() {
               </div>
               <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>Curriculum</span>
-                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#c084fc', fontFamily: 'var(--font-mono)' }}>31 Days</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#34d399', fontFamily: 'var(--font-mono)' }}>31 Days</span>
               </div>
               <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
                 <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>RAG Engine</span>
@@ -430,7 +430,7 @@ function LandingPage() {
                 <span>Active Agent</span>
               </div>
               {terminalLogs.map((log, lIdx) => (
-                <div key={lIdx} style={{ color: log.includes('[INIT]') ? '#c084fc' : log.includes('[RAG]') ? '#38bdf8' : log.includes('[OK]') ? '#34d399' : '#a78bfa', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <div key={lIdx} style={{ color: log.includes('[INIT]') ? '#38bdf8' : log.includes('[RAG]') ? '#38bdf8' : log.includes('[OK]') ? '#34d399' : '#e2e8f0', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                   {log}
                 </div>
               ))}
