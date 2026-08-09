@@ -1388,7 +1388,7 @@ function Interview() {
           <div className="role-badge" style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{selectedCandidate.member.jobRole}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '20px', flex: 1, justifyContent: 'center' }}>
-          <div className="question-tracker" style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 'bold', whiteSpace: 'nowrap' }}>Question {Math.min(questionCount, 8)}/8</div>
+          <div className="question-tracker" style={{ fontSize: '0.9rem', color: '#94a3b8', fontWeight: 'bold', whiteSpace: 'nowrap' }}>Question {Math.min(questionCount, 15)}/15</div>
           
           <div className="panel-speakers" style={{ display: 'flex', gap: '8px', background: 'rgba(255,255,255,0.03)', padding: '4px 10px', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.05)' }}>
             {[

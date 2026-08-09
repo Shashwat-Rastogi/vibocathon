@@ -137,7 +137,7 @@ app.post('/api/interview', async (req, res) => {
         const retrievedChunks = await retrieveContext(queryContext, 3);
         const ragContextStr = retrievedChunks.map(c => c.text).join("\n\n");
 
-        const progressStr = `Progress: ${session.questionCount}/8 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
+        const progressStr = `Progress: ${session.questionCount}/15 questions asked, ${session.coveredDays.size}/4 days covered. Current covered days: ${Array.from(session.coveredDays).join(', ')}`;
 
         let systemInstruction = 
             getSystemPrompt(session.persona, session.candidate, ragContextStr, progressStr, session.interviewerType || 'standard') + "\n\n" +
@@ -276,8 +276,8 @@ app.post('/api/interview', async (req, res) => {
         }
 
         // 3. Check Done Condition — ONLY after parse/track updates the counter
-        // Guard: must have at least 8 questions asked AND at least 6 real user answers
-        const isFinalAnswer = session.questionCount >= 8 && (session.userAnswerCount || 0) >= 6;
+        // Guard: must have at least 15 questions asked AND at least 12 real user answers
+        const isFinalAnswer = session.questionCount >= 15 && (session.userAnswerCount || 0) >= 12;
 
         if (isFinalAnswer) {
             // Update system instruction to close out — this message was already sent, so just note for logging
@@ -386,7 +386,7 @@ app.post('/api/interview/end', async (req, res) => {
             candidateName: candidate.member?.name || candidateName,
             role: candidate.jobRole || role,
             interviewerType: session?.interviewerType || 'standard',
-            status: status || (questionCount >= 8 ? 'completed' : 'ended_early'),
+            status: status || (questionCount >= 15 ? 'completed' : 'ended_early'),
             score: feedback.score,
             readiness: feedback.readiness,
             summary: feedback.summary,
