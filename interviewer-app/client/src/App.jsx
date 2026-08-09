@@ -217,30 +217,38 @@ const SidebarStatsPanel = () => {
   return (
     <div className="sidebar-stats-card glass-card" style={{
       marginTop: 'auto',
-      padding: '14px 16px',
-      borderRadius: '12px',
-      background: 'rgba(17, 24, 39, 0.55)',
-      backdropFilter: 'blur(16px)',
-      border: '1px solid rgba(255, 255, 255, 0.08)',
+      padding: '16px 18px',
+      borderRadius: '14px',
+      background: 'rgba(15, 23, 42, 0.7)',
+      backdropFilter: 'blur(24px)',
+      border: '1px solid rgba(251, 191, 36, 0.22)',
+      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
       display: 'flex',
       flexDirection: 'column',
-      gap: '10px'
+      gap: '12px'
     }}>
-      <div style={{ fontSize: '0.7rem', color: '#a78bfa', fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cohort Live Signals</div>
+      <div style={{
+        fontSize: '0.75rem',
+        color: '#fbbf24',
+        fontWeight: '700',
+        textTransform: 'uppercase',
+        letterSpacing: '0.08em',
+        fontFamily: 'var(--font-heading)'
+      }}>Cohort Live Signals</div>
       
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
         <span style={{ color: '#94a3b8' }}>Total Candidates</span>
-        <span style={{ color: 'white', fontWeight: 'bold' }}>{totalCandidates}</span>
+        <span style={{ color: '#f8fafc', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>{totalCandidates}</span>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
         <span style={{ color: '#94a3b8' }}>Avg Missions</span>
-        <span style={{ color: '#34d399', fontWeight: 'bold' }}>{avgCompleted}/31</span>
+        <span style={{ color: '#34d399', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>{avgCompleted}/31</span>
       </div>
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.8rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
         <span style={{ color: '#94a3b8' }}>Most Skipped</span>
-        <span style={{ color: '#fbbf24', fontWeight: 'bold' }}>Day {maxSkippedDay}</span>
+        <span style={{ color: '#fbbf24', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>Day {maxSkippedDay}</span>
       </div>
     </div>
   );
