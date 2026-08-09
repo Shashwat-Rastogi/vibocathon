@@ -143,41 +143,73 @@ app.post('/api/interview', async (req, res) => {
         let analytics = null;
         if (message) {
             const lowerMsg = message.toLowerCase();
-            let confidence = 75;
-            const hedging = ["i think", "maybe", "not sure", "probably", "i guess", "kind of", "perhaps", "sort of", "would assume", "unclear", "unsure"];
-            const confident = ["definitely", "absolutely", "specifically", "critical", "designed", "implemented", "ensured", "optimized", "proved", "verified", "exactly"];
             
-            hedging.forEach(phrase => {
-                if (lowerMsg.includes(phrase)) confidence -= 10;
-            });
-            confident.forEach(word => {
-                if (lowerMsg.includes(word)) confidence += 6;
-            });
-            confidence = Math.max(30, Math.min(100, confidence));
+            // Detect copy-pasted assistant greeting or question
+            let isCopyPaste = false;
+            
+            // Check signature greeting phrases
+            if (lowerMsg.includes("i am socrates") || lowerMsg.includes("joined today by") || 
+                lowerMsg.includes("welcome, " + session.candidate.member.name.toLowerCase())) {
+                isCopyPaste = true;
+            }
+            
+            // Check overlap with last assistant message
+            const lastAssistantMsg = [...session.history].reverse().find(h => h.role === 'model')?.parts?.[0]?.text;
+            if (lastAssistantMsg) {
+                const cleanLast = lastAssistantMsg.toLowerCase().replace(/[^a-z0-9]/g, "");
+                const cleanUser = lowerMsg.replace(/[^a-z0-9]/g, "");
+                // If user text has 80%+ overlap, or user copy-pasted a substantial block of the last message
+                if (cleanLast.includes(cleanUser) && cleanUser.length > 30) {
+                    isCopyPaste = true;
+                }
+            }
 
-            const techKeywords = [
-                "embedding", "vector", "chunking", "metadata", "similarity", "cosine", "rag", "agent", 
-                "orchestration", "fastapi", "sqlite", "chroma", "pinecone", "docker", "kubernetes", 
-                "mcp", "prompt", "peft", "lora", "fine-tuning", "cache", "latency", "concurrency", 
-                "streaming", "sse", "b-tree", "eval", "retrieval"
-            ];
-            let matchCount = 0;
-            techKeywords.forEach(keyword => {
-                if (lowerMsg.includes(keyword)) matchCount++;
-            });
-            let density = "Low";
-            if (matchCount >= 5) density = "High";
-            else if (matchCount >= 2) density = "Medium";
-
+            let confidence = 75;
             let sentiment = "Analytical";
-            if (confidence < 60) {
+            let density = "Low";
+
+            if (isCopyPaste) {
+                confidence = 30;
+                sentiment = "Evasive";
+                density = "Low";
+            } else if (lowerMsg.length < 15) {
+                confidence = 45;
                 sentiment = "Hesitant";
-            } else if (confidence > 85) {
-                sentiment = "Confident";
-            } else if (lowerMsg.includes("depend") || lowerMsg.includes("tradeoff") || lowerMsg.includes("however")) {
-                sentiment = "Analytical";
-            } else if (lowerMsg.includes("just") || lowerMsg.includes("only") || lowerMsg.includes("simply")) {
-                sentiment = "Defensive";
+                density = "Low";
+            } else {
+                const hedging = ["i think", "maybe", "not sure", "probably", "i guess", "kind of", "perhaps", "sort of", "would assume", "unclear", "unsure"];
+                const confident = ["definitely", "absolutely", "specifically", "critical", "designed", "implemented", "ensured", "optimized", "proved", "verified", "exactly"];
+                
+                hedging.forEach(phrase => {
+                    if (lowerMsg.includes(phrase)) confidence -= 10;
+                });
+                confident.forEach(word => {
+                    if (lowerMsg.includes(word)) confidence += 6;
+                });
+                confidence = Math.max(30, Math.min(100, confidence));
+
+                const techKeywords = [
+                    "embedding", "vector", "chunking", "metadata", "similarity", "cosine", "rag", "agent", 
+                    "orchestration", "fastapi", "sqlite", "chroma", "pinecone", "docker", "kubernetes", 
+                    "mcp", "prompt", "peft", "lora", "fine-tuning", "cache", "latency", "concurrency", 
+                    "streaming", "sse", "b-tree", "eval", "retrieval"
+                ];
+                let matchCount = 0;
+                techKeywords.forEach(keyword => {
+                    if (lowerMsg.includes(keyword)) matchCount++;
+                });
+                if (matchCount >= 5) density = "High";
+                else if (matchCount >= 2) density = "Medium";
+
+                if (confidence < 60) {
+                    sentiment = "Hesitant";
+                } else if (confidence > 85) {
+                    sentiment = "Confident";
+                } else if (lowerMsg.includes("depend") || lowerMsg.includes("tradeoff") || lowerMsg.includes("however")) {
+                    sentiment = "Analytical";
+                } else if (lowerMsg.includes("just") || lowerMsg.includes("only") || lowerMsg.includes("simply")) {
+                    sentiment = "Defensive";
+                }
             }
 
             analytics = {
