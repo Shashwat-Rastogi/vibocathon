@@ -2059,9 +2059,52 @@ class ErrorBoundary extends React.Component {
   }
 }
 
+function SplashIntro({ onComplete }) {
+  const [fade, setFade] = useState(false);
+
+  useEffect(() => {
+    // Fade out after 3.2 seconds
+    const fadeTimer = setTimeout(() => {
+      setFade(true);
+    }, 3200);
+
+    // Complete after 3.8 seconds (fade transition complete)
+    const completeTimer = setTimeout(() => {
+      onComplete();
+    }, 3800);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(completeTimer);
+    };
+  }, [onComplete]);
+
+  return (
+    <div className={`splash-container ${fade ? 'fade-out' : ''}`}>
+      <div className="splash-bg">
+        <DopaCore theme="colorful" count={12000} autoSpin={true} speedMult={1} />
+      </div>
+      <div className="splash-content">
+        <h1 className="prism-logo">PRISM</h1>
+        <div className="prism-subbar"></div>
+      </div>
+    </div>
+  );
+}
+
 function App() {
+  const [showSplash, setShowSplash] = useState(() => {
+    return !sessionStorage.getItem('prism_splash_played');
+  });
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('prism_splash_played', 'true');
+    setShowSplash(false);
+  };
+
   return (
     <ErrorBoundary>
+      {showSplash && <SplashIntro onComplete={handleSplashComplete} />}
       <BrowserRouter>
         <BackgroundWrapper>
           <Routes>
