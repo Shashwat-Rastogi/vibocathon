@@ -169,10 +169,11 @@ body {
 }
 
 .sidebar-logo {
-  font-family: var(--font-heading);
-  font-size: 1.45rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #fff 0%, #c084fc 60%, #38bdf8 100%);
+  font-family: 'Orbitron', var(--font-heading);
+  font-size: 1.55rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #fff 0%, #f472b6 60%, #f97316 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   margin-bottom: 48px;

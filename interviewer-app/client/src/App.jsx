@@ -260,7 +260,7 @@ const Sidebar = ({ activePage }) => {
     <aside className="dashboard-sidebar" style={{ display: 'flex', flexDirection: 'column', minHeight: '100%' }}>
       <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
         <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
-        <span>AI Cohort Agent</span>
+        <span>PRISM</span>
       </div>
       <nav className="sidebar-nav">
         <div className={`nav-item ${activePage === 'home' ? 'active' : ''}`} onClick={() => navigate('/')}>
