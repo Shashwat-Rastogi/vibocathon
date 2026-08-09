@@ -31,11 +31,12 @@ h1, h2, h3, h4, h5, h6, .candidate-name, .nav-item, .sidebar-logo, .hero-title, 
   letter-spacing: -0.01em;
 }
 
-/* Holographic Gradient Text Headings */
+/* Holographic High-Contrast Gradient Text Headings */
 .gradient-text, .hero-content h1, .dashboard-title h1 {
-  background: linear-gradient(135deg, #38bdf8 0%, #c084fc 50%, #ec4899 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 40%, #38bdf8 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  text-shadow: 0 4px 12px rgba(56, 189, 248, 0.15);
 }
 
 /* Data / Numeric Elements */
@@ -964,7 +965,8 @@ body {
   line-height: 1.6;
   max-width: 550px;
   margin: 0 0 2rem 0;
-  color: rgba(255, 255, 255, 0.7);
+  color: #e2e8f0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .hero-title {

@@ -362,8 +362,8 @@ function LandingPage() {
       <main className="hero-section">
         {/* Left Column: Core Hero Info */}
         <div className="hero-content">
-          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(192, 132, 252, 0.12)', border: '1px solid rgba(192, 132, 252, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#c084fc', fontWeight: '600', alignSelf: 'center', margin: '0 auto 16px' }}>
-            <span className="rag-pulse" style={{ background: '#c084fc', boxShadow: '0 0 8px #c084fc' }}></span> True RAG Vector Search Brain
+          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(56, 189, 248, 0.12)', border: '1px solid rgba(56, 189, 248, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#38bdf8', fontWeight: '600', alignSelf: 'center', margin: '0 auto 16px' }}>
+            <span className="rag-pulse" style={{ background: '#38bdf8', boxShadow: '0 0 8px #38bdf8' }}></span> True RAG Vector Search Brain
           </div>
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
