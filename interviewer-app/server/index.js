@@ -5,6 +5,7 @@ import fs from 'fs';
 import { getSystemPrompt, SYSTEM_PROMPT_BASE_RULES, SYSTEM_PROMPT_FEEDBACK } from './prompts.js';
 import { initializeRAG, retrieveContext } from './rag.js';
 import { initAI, generateContentWithFallback } from './ai_fallback.js';
+import { dbService } from './db.js';
 
 dotenv.config();
 
@@ -23,30 +24,7 @@ const curriculum = JSON.parse(fs.readFileSync('./data/curriculum.json', 'utf8'))
 const candidatesData = JSON.parse(fs.readFileSync('./data/candidates.json', 'utf8'));
 const sessions = new Map();
 
-const DB_FILE = './data/interviews.json';
-const getInterviewsFromDB = () => {
-    try {
-        if (!fs.existsSync(DB_FILE)) return [];
-        return JSON.parse(fs.readFileSync(DB_FILE, 'utf8') || '[]');
-    } catch {
-        return [];
-    }
-};
-
-const saveInterviewToDB = (record) => {
-    try {
-        const list = getInterviewsFromDB();
-        const existingIdx = list.findIndex(item => item.id === record.id);
-        if (existingIdx >= 0) {
-            list[existingIdx] = { ...list[existingIdx], ...record };
-        } else {
-            list.push(record);
-        }
-        fs.writeFileSync(DB_FILE, JSON.stringify(list, null, 2), 'utf8');
-    } catch (err) {
-        console.error("DB Save Error:", err);
-    }
-};
+// SQLite handles persistent sessions and feedback logs
 
 // Initialize RAG embeddings in background
 initializeRAG();
@@ -112,11 +90,11 @@ app.get('/api/stats', (req, res) => {
 
 app.get('/api/interviews', (req, res) => {
     const { interviewer } = req.query;
-    let list = getInterviewsFromDB();
-    if (interviewer) {
-        list = list.filter(item => item.interviewerName === interviewer);
-    }
-    res.json(list);
+    res.json(dbService.getInterviews(interviewer));
+});
+
+app.get('/api/readiness', (req, res) => {
+    res.json(dbService.getReadinessList());
 });
 
 app.post('/api/interview', async (req, res) => {
@@ -127,7 +105,7 @@ app.post('/api/interview', async (req, res) => {
         // Input validation: cap message length, strip null bytes
         const safeMessage = message ? message.replace(/\0/g, '').slice(0, 2000) : null;
 
-        let session = sessions.get(sessionId);
+        let session = sessions.get(sessionId) || dbService.getSession(sessionId);
 
         // Turn 1 Init
         if (candidate && !message) {
@@ -141,6 +119,7 @@ app.post('/api/interview', async (req, res) => {
                 coveredDays: new Set()
             };
             sessions.set(sessionId, session);
+            dbService.createSession({ sessionId, candidate, persona, interviewerType });
         } else if (!session) {
             return res.status(400).json({ error: 'Session not found' });
         }
@@ -148,6 +127,7 @@ app.post('/api/interview', async (req, res) => {
         if (safeMessage) {
             session.history.push({ role: 'user', parts: [{ text: safeMessage }] });
             session.userAnswerCount = (session.userAnswerCount || 0) + 1;
+            dbService.addMessage({ sessionId, role: 'user', content: safeMessage, speaker: 'Candidate' });
         } else {
             session.history.push({ role: 'user', parts: [{ text: "Hello, I am ready to begin the interview." }] });
         }
@@ -185,10 +165,11 @@ app.post('/api/interview', async (req, res) => {
             speaker = speakerMatch[1];
             cleanedReply = reply.replace(/^\[(Socrates|Grace Hopper|Sun Tzu)\]\s*/i, "");
         } else {
-            // Assign based on persona if tag is missing
             if (session.persona === 'hopper') speaker = 'Grace Hopper';
             else if (session.persona === 'sun-tzu') speaker = 'Sun Tzu';
         }
+
+        dbService.addMessage({ sessionId, role: 'assistant', content: cleanedReply, speaker });
 
         // Heuristic analytics on user's answer (if safeMessage is provided)
         let analytics = null;
@@ -290,6 +271,8 @@ app.post('/api/interview', async (req, res) => {
             } catch (e) {
                 console.warn("Failed to parse question tracking JSON:", e.message);
             }
+
+            dbService.updateProgress(sessionId, session.questionCount, session.userAnswerCount, session.coveredDays);
         }
 
         // 3. Check Done Condition — ONLY after parse/track updates the counter
@@ -313,10 +296,14 @@ app.post('/api/interview', async (req, res) => {
             let feedback;
             try {
                 feedback = JSON.parse(feedbackCompletionText);
+                if (!feedback.readiness) {
+                    feedback.readiness = feedback.score >= 80 ? 'Strong' : feedback.score >= 60 ? 'Adequate' : 'Needs Work';
+                }
             } catch (parseErr) {
                 console.error("Failed to parse feedback JSON:", parseErr.message, "Raw:", feedbackCompletionText?.substring(0, 200));
                 feedback = {
                     score: 50,
+                    readiness: "Needs Work",
                     summary: "Evaluation report could not be parsed. The interview was completed successfully.",
                     strengths: ["Interview session completed."],
                     gaps: ["Detailed analysis unavailable due to a parsing error."],
@@ -325,15 +312,19 @@ app.post('/api/interview', async (req, res) => {
                 };
             }
 
-            saveInterviewToDB({
-                id: sessionId,
+            dbService.saveFeedbackRecord({
+                sessionId,
                 candidateName: session.candidate.member?.name,
                 role: session.candidate.jobRole,
                 interviewerType: session.interviewerType || 'standard',
-                timestamp: new Date().toISOString(),
                 status: 'completed',
-                questionsAnswered: session.questionCount,
-                feedback
+                score: feedback.score,
+                readiness: feedback.readiness,
+                summary: feedback.summary,
+                strengths: feedback.strengths,
+                gaps: feedback.gaps,
+                next: feedback.next,
+                revisionDeck: feedback.revisionDeck
             });
 
             return res.json({
@@ -386,20 +377,24 @@ app.post('/api/interview/end', async (req, res) => {
         );
 
         let feedback = JSON.parse(feedbackCompletionText);
+        if (!feedback.readiness) {
+            feedback.readiness = feedback.score >= 80 ? 'Strong' : feedback.score >= 60 ? 'Adequate' : 'Needs Work';
+        }
 
-        const record = {
-            id: sessionId,
+        dbService.saveFeedbackRecord({
+            sessionId,
             candidateName: candidate.member?.name || candidateName,
             role: candidate.jobRole || role,
-            interviewerName: interviewerName || 'Unknown',
             interviewerType: session?.interviewerType || 'standard',
-            timestamp: new Date().toISOString(),
             status: status || (questionCount >= 8 ? 'completed' : 'ended_early'),
-            questionsAnswered: questionCount,
-            feedback
-        };
-
-        saveInterviewToDB(record);
+            score: feedback.score,
+            readiness: feedback.readiness,
+            summary: feedback.summary,
+            strengths: feedback.strengths,
+            gaps: feedback.gaps,
+            next: feedback.next,
+            revisionDeck: feedback.revisionDeck
+        });
 
         res.json({ success: true, record });
     } catch (err) {

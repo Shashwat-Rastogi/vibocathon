@@ -9,6 +9,60 @@ import './index.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || '';
 
+export const generateFeedbackText = (candidateName, role, feedback) => {
+  if (!feedback) return '';
+  const timestamp = new Date().toLocaleString();
+  return `==================================================
+AI COHORT TECHNICAL INTERVIEW REPORT
+Candidate: ${candidateName || 'Candidate'} (${role || 'Engineer'})
+Date: ${timestamp}
+Overall Score: ${feedback.score !== undefined ? feedback.score : 'N/A'}/100
+Readiness Signal: ${feedback.readiness || (feedback.score >= 80 ? 'Strong' : feedback.score >= 60 ? 'Adequate' : 'Needs Work')}
+==================================================
+
+SUMMARY
+--------------------------------------------------
+${feedback.summary || 'N/A'}
+
+STRENGTHS
+--------------------------------------------------
+${(feedback.strengths || []).map(s => `• ${s}`).join('\n') || 'None listed'}
+
+KNOWLEDGE GAPS
+--------------------------------------------------
+${(feedback.gaps || []).map(g => `• ${g}`).join('\n') || 'None listed'}
+
+RECOMMENDED NEXT STEPS
+--------------------------------------------------
+${(feedback.next || []).map(n => `• ${n}`).join('\n') || 'None listed'}
+
+${feedback.revisionDeck && feedback.revisionDeck.length > 0 ? `REVISION DECK
+--------------------------------------------------
+${feedback.revisionDeck.map(card => `[${card.topic}] ${card.concept}`).join('\n')}
+` : ''}==================================================
+`;
+};
+
+export const copyFeedbackToClipboard = (candidateName, role, feedback, callback) => {
+  const text = generateFeedbackText(candidateName, role, feedback);
+  navigator.clipboard.writeText(text).then(() => {
+    if (callback) callback();
+  });
+};
+
+export const downloadFeedbackTxt = (candidateName, role, feedback) => {
+  const text = generateFeedbackText(candidateName, role, feedback);
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `Interview_Report_${(candidateName || 'Candidate').replace(/\s+/g, '_')}.txt`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
 let globalAudioCtx = null;
 const playTypingSound = () => {
   try {
@@ -212,6 +266,9 @@ const Sidebar = ({ activePage }) => {
         </div>
         <div className={`nav-item ${activePage === 'interviews' ? 'active' : ''}`} onClick={() => navigate('/interviews')}>
           <span>Interviews</span>
+        </div>
+        <div className={`nav-item ${activePage === 'readiness' ? 'active' : ''}`} onClick={() => navigate('/readiness')}>
+          <span>Readiness</span>
         </div>
         <div className={`nav-item ${activePage === 'reports' ? 'active' : ''}`} onClick={() => navigate('/reports')}>
           <span>Reports</span>
@@ -776,7 +833,12 @@ function InterviewHistory() {
                 </div>
 
                 <div className="candidate-stats" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
-                  <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(h.timestamp).toLocaleString()}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{new Date(h.timestamp).toLocaleString()}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#a78bfa', background: 'rgba(139,92,246,0.1)', padding: '2px 8px', borderRadius: '10px', border: '1px solid rgba(139,92,246,0.2)' }}>
+                      Est. Cost: ~${(h.costEstimate || 0.003).toFixed(3)}
+                    </span>
+                  </div>
                   {h.status === 'ended_early' ? (
                     <span style={{ background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', border: '1px solid rgba(245, 158, 11, 0.3)', padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600 }}>
                       Ended Early ({h.questionsAnswered || 1}/8)
@@ -1173,7 +1235,19 @@ function Interview() {
               <div className="feedback-card" style={{ overflowY: 'auto', maxHeight: '400px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
                   <h3 style={{ margin: 0, color: '#a78bfa' }}>📋 Interview Report</h3>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <button
+                      onClick={() => copyFeedbackToClipboard(selectedCandidate.member.name, selectedCandidate.jobRole, feedback, () => { setCopiedFeedback(true); setTimeout(() => setCopiedFeedback(false), 2000); })}
+                      style={{ background: 'rgba(139, 92, 246, 0.15)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#c084fc', borderRadius: '6px', padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
+                    >
+                      {copiedFeedback ? '✓ Copied!' : '📋 Copy Text'}
+                    </button>
+                    <button
+                      onClick={() => downloadFeedbackTxt(selectedCandidate.member.name, selectedCandidate.jobRole, feedback)}
+                      style={{ background: 'rgba(52, 211, 153, 0.15)', border: '1px solid rgba(52, 211, 153, 0.3)', color: '#34d399', borderRadius: '6px', padding: '4px 10px', fontSize: '0.8rem', cursor: 'pointer' }}
+                    >
+                      📥 Download .txt
+                    </button>
                     {feedback.score !== undefined && (
                       <div className="score-badge" style={{
                         background: feedback.score >= 75 ? 'rgba(16,185,129,0.15)' : feedback.score >= 50 ? 'rgba(245,158,11,0.15)' : 'rgba(239,68,68,0.15)',
@@ -1402,8 +1476,22 @@ function ReportsDashboard() {
                       <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>{new Date(h.timestamp).toLocaleString()}</div>
                     </div>
                     {h.feedback.score !== undefined && (
-                      <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '12px 24px', borderRadius: '12px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)', fontSize: '1.2rem' }}>
-                        {h.feedback.score}/100
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); copyFeedbackToClipboard(h.candidateName, h.role, h.feedback); }}
+                          style={{ background: 'rgba(139, 92, 246, 0.15)', border: '1px solid rgba(139, 92, 246, 0.3)', color: '#c084fc', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', cursor: 'pointer' }}
+                        >
+                          📋 Copy
+                        </button>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); downloadFeedbackTxt(h.candidateName, h.role, h.feedback); }}
+                          style={{ background: 'rgba(52, 211, 153, 0.15)', border: '1px solid rgba(52, 211, 153, 0.3)', color: '#34d399', borderRadius: '6px', padding: '4px 10px', fontSize: '0.75rem', cursor: 'pointer' }}
+                        >
+                          📥 .txt
+                        </button>
+                        <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '8px 16px', borderRadius: '12px', color: '#a78bfa', fontWeight: 'bold', border: '1px solid rgba(139, 92, 246, 0.5)', fontSize: '1.1rem' }}>
+                          {h.feedback.score}/100
+                        </div>
                       </div>
                     )}
                   </div>
@@ -1449,6 +1537,143 @@ function ReportsDashboard() {
             <div className="no-candidates">No reports available yet. Complete an interview to generate one.</div>
           )}
         </div>
+      </main>
+    </div>
+  );
+}
+
+function InstructorReadinessView() {
+  const navigate = useNavigate();
+  const [readinessList, setReadinessList] = useState([]);
+  const [sortField, setSortField] = useState('date');
+  const [copiedId, setCopiedId] = useState(null);
+  const [expandedId, setExpandedId] = useState(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/readiness`)
+      .then(res => res.json())
+      .then(data => setReadinessList(data))
+      .catch(console.error);
+  }, []);
+
+  const totalCost = readinessList.reduce((sum, item) => sum + (item.costEstimate || 0.003), 0);
+
+  const sortedList = [...readinessList].sort((a, b) => {
+    if (sortField === 'readiness') {
+      const order = { 'Strong': 3, 'Adequate': 2, 'Needs Work': 1 };
+      return (order[b.readiness] || 0) - (order[a.readiness] || 0);
+    }
+    return new Date(b.timestamp || b.createdAt || Date.now()).getTime() - new Date(a.timestamp || a.createdAt || Date.now()).getTime();
+  });
+
+  return (
+    <div className="dashboard-container">
+      <Sidebar activePage="readiness" />
+
+      <main className="dashboard-main">
+        <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px' }}>
+          <div className="dashboard-title">
+            <h1>Instructor Readiness View</h1>
+            <p>Dense aggregate table across completed interviews to determine candidate hiring and cohort readiness.</p>
+          </div>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
+            <div className="glass-card" style={{ padding: '8px 16px', borderRadius: '10px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)' }}>
+              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', marginRight: '8px' }}>Est. Running Spend:</span>
+              <strong style={{ color: '#c084fc', fontSize: '1rem' }}>~${totalCost.toFixed(3)}</strong>
+            </div>
+            <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Estimated LLM token usage across completed sessions</span>
+          </div>
+        </div>
+
+        <div className="filter-sort-bar" style={{ marginBottom: '20px', justifyContent: 'space-between' }}>
+          <div style={{ color: '#94a3b8', fontSize: '0.9rem', fontWeight: 500 }}>
+            Showing <strong>{sortedList.length}</strong> evaluated candidates
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Sort By:</span>
+            <select 
+              value={sortField} 
+              onChange={e => setSortField(e.target.value)}
+              className="sort-select"
+              style={{ padding: '8px 14px', fontSize: '0.85rem' }}
+            >
+              <option value="date">Date Completed (Newest)</option>
+              <option value="readiness">Readiness Signal (Highest)</option>
+            </select>
+          </div>
+        </div>
+
+        {sortedList.length > 0 ? (
+          <div className="glass-card" style={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+              <thead>
+                <tr style={{ background: 'rgba(0,0,0,0.4)', borderBottom: '1px solid rgba(255,255,255,0.1)', color: '#a78bfa', textTransform: 'uppercase', fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                  <th style={{ padding: '14px 18px' }}>Candidate Name</th>
+                  <th style={{ padding: '14px 18px' }}>Job Role</th>
+                  <th style={{ padding: '14px 18px' }}>Interviewer Mode</th>
+                  <th style={{ padding: '14px 18px' }}>Date Completed</th>
+                  <th style={{ padding: '14px 18px' }}>Est. Cost</th>
+                  <th style={{ padding: '14px 18px' }}>Score</th>
+                  <th style={{ padding: '14px 18px' }}>Readiness Signal</th>
+                  <th style={{ padding: '14px 18px', textAlign: 'right' }}>Export / Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {sortedList.map((c) => (
+                  <tr 
+                    key={c.id}
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', transition: 'background 0.2s ease', cursor: 'pointer' }}
+                    onClick={() => setExpandedId(expandedId === c.id ? null : c.id)}
+                  >
+                    <td style={{ padding: '14px 18px', fontWeight: 'bold', color: '#f8fafc' }}>{c.candidateName}</td>
+                    <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{c.role}</td>
+                    <td style={{ padding: '14px 18px', textTransform: 'capitalize' }}>
+                      <span style={{
+                        padding: '3px 8px', borderRadius: '10px', fontSize: '0.75rem', fontWeight: 600,
+                        background: c.interviewerType === 'deep_dive' ? 'rgba(239, 68, 68, 0.15)' : c.interviewerType === 'friendly' ? 'rgba(52, 211, 153, 0.15)' : 'rgba(139, 92, 246, 0.15)',
+                        color: c.interviewerType === 'deep_dive' ? '#f87171' : c.interviewerType === 'friendly' ? '#34d399' : '#c084fc'
+                      }}>
+                        {c.interviewerType ? c.interviewerType.replace('_', ' ') : 'Standard'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 18px', color: '#94a3b8' }}>{new Date(c.timestamp || c.createdAt).toLocaleDateString()}</td>
+                    <td style={{ padding: '14px 18px', color: '#a78bfa', fontWeight: 600 }}>~${(c.costEstimate || 0.003).toFixed(3)}</td>
+                    <td style={{ padding: '14px 18px', fontWeight: 'bold', color: c.score >= 80 ? '#34d399' : c.score >= 60 ? '#fbbf24' : '#f87171' }}>{c.score}/100</td>
+                    <td style={{ padding: '14px 18px' }}>
+                      <span style={{
+                        padding: '4px 12px', borderRadius: '16px', fontWeight: 'bold', fontSize: '0.8rem',
+                        background: c.readiness === 'Strong' ? 'rgba(16, 185, 129, 0.15)' : c.readiness === 'Adequate' ? 'rgba(56, 189, 248, 0.15)' : 'rgba(239, 68, 68, 0.15)',
+                        color: c.readiness === 'Strong' ? '#34d399' : c.readiness === 'Adequate' ? '#38bdf8' : '#f87171',
+                        border: `1px solid ${c.readiness === 'Strong' ? 'rgba(16, 185, 129, 0.3)' : c.readiness === 'Adequate' ? 'rgba(56, 189, 248, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`
+                      }}>
+                        {c.readiness || 'Adequate'}
+                      </span>
+                    </td>
+                    <td style={{ padding: '14px 18px', textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '8px' }} onClick={e => e.stopPropagation()}>
+                        <button 
+                          onClick={() => copyFeedbackToClipboard(c.candidateName, c.role, c.feedback, () => { setCopiedId(c.id); setTimeout(() => setCopiedId(null), 2000); })}
+                          style={{ padding: '4px 8px', fontSize: '0.75rem', background: 'rgba(255,255,255,0.06)', color: '#c084fc', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '6px', cursor: 'pointer' }}
+                        >
+                          {copiedId === c.id ? '✓ Copied' : '📋 Copy'}
+                        </button>
+                        <button 
+                          onClick={() => downloadFeedbackTxt(c.candidateName, c.role, c.feedback)}
+                          style={{ padding: '4px 8px', fontSize: '0.75rem', background: 'rgba(52, 211, 153, 0.12)', color: '#34d399', border: '1px solid rgba(52, 211, 153, 0.25)', borderRadius: '6px', cursor: 'pointer' }}
+                        >
+                          📥 .txt
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="no-candidates">No candidate readiness evaluations recorded yet. Complete an interview to generate reports.</div>
+        )}
       </main>
     </div>
   );
@@ -1564,6 +1789,7 @@ function BackgroundWrapper({ children }) {
   const isCandidates = location.pathname === '/candidates';
   const isInterview = location.pathname === '/interview';
   const isInterviews = location.pathname === '/interviews';
+  const isReadiness = location.pathname === '/readiness';
   const isReports = location.pathname === '/reports';
   const isOverview = location.pathname === '/overview';
   
@@ -1574,7 +1800,7 @@ function BackgroundWrapper({ children }) {
           <DopaCore theme="colorful" count={12000} autoSpin={true} speedMult={1} />
         </div>
       )}
-      {(isCandidates || isInterviews || isReports || isOverview) && (
+      {(isCandidates || isInterviews || isReadiness || isReports || isOverview) && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2, background: '#07090e' }}>
           <Antigravity
             count={90}
@@ -1612,6 +1838,7 @@ function App() {
           <Route path="/overview" element={<OverviewDashboard />} />
           <Route path="/candidates" element={<CandidateSelection />} />
           <Route path="/interviews" element={<InterviewHistory />} />
+          <Route path="/readiness" element={<InstructorReadinessView />} />
           <Route path="/reports" element={<ReportsDashboard />} />
           <Route path="/interview" element={<Interview />} />
         </Routes>

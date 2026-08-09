@@ -125,6 +125,7 @@ You are generating final structured feedback for a completed technical interview
 
 {
   "score": <integer from 0 to 100 representing overall technical performance>,
+  "readiness": <string, exactly one of: "Strong" | "Adequate" | "Needs Work">,
   "summary": "2-4 sentence honest overall verdict, referencing specific topics covered",
   "strengths": ["2-3 concrete, evidence-based points tied to specific moments in the transcript"],
   "gaps": ["2-3 specific weaknesses, plainly named, with what a stronger answer would have included"],
