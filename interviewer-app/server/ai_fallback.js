@@ -124,6 +124,11 @@ export const generateContentWithFallback = async (model, contents, config) => {
             revisionDeck: [{ topic: "Resiliency", concept: "Handling external API outages gracefully." }]
         });
     } else {
+        const isOpening = (typeof contents === 'string' && contents.toLowerCase().includes("ready to begin")) || 
+                          (Array.isArray(contents) && contents.length <= 1);
+        if (isOpening) {
+            return "Welcome to the technical interview! To kick things off: Could you briefly walk me through your technical background and the most challenging system architecture problem you solved in your recent projects?";
+        }
         return "I am experiencing a temporary connection issue with my AI backend (503 Outage). Could you elaborate on your last point, or perhaps we can move on to the next topic while the connection restores?";
     }
 };
