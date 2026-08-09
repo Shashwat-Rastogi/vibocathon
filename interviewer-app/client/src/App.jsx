@@ -221,7 +221,7 @@ const SidebarStatsPanel = () => {
       borderRadius: '14px',
       background: 'rgba(15, 23, 42, 0.7)',
       backdropFilter: 'blur(24px)',
-      border: '1px solid rgba(251, 191, 36, 0.22)',
+      border: '1px solid rgba(192, 132, 252, 0.25)',
       boxShadow: '0 8px 32px rgba(0, 0, 0, 0.5)',
       display: 'flex',
       flexDirection: 'column',
@@ -229,7 +229,7 @@ const SidebarStatsPanel = () => {
     }}>
       <div style={{
         fontSize: '0.75rem',
-        color: '#fbbf24',
+        color: '#c084fc',
         fontWeight: '700',
         textTransform: 'uppercase',
         letterSpacing: '0.08em',
@@ -248,7 +248,7 @@ const SidebarStatsPanel = () => {
 
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.82rem' }}>
         <span style={{ color: '#94a3b8' }}>Most Skipped</span>
-        <span style={{ color: '#fbbf24', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>Day {maxSkippedDay}</span>
+        <span style={{ color: '#c084fc', fontWeight: 'bold', fontFamily: 'var(--font-mono)' }}>Day {maxSkippedDay}</span>
       </div>
     </div>
   );
@@ -362,18 +362,18 @@ function LandingPage() {
       <main className="hero-section">
         {/* Left Column: Core Hero Info */}
         <div className="hero-content">
-          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#fbbf24', fontWeight: '600', alignSelf: 'center', margin: '0 auto 16px' }}>
-            <span className="rag-pulse" style={{ background: '#fbbf24', boxShadow: '0 0 8px #fbbf24' }}></span> True RAG Vector Search Brain
+          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(192, 132, 252, 0.12)', border: '1px solid rgba(192, 132, 252, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#c084fc', fontWeight: '600', alignSelf: 'center', margin: '0 auto 16px' }}>
+            <span className="rag-pulse" style={{ background: '#c084fc', boxShadow: '0 0 8px #c084fc' }}></span> True RAG Vector Search Brain
           </div>
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
             Conducts adaptive technical interviews calibrated dynamically against a candidate's actual curriculum progress and GitHub commit history.
           </p>
 
-          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.7)', margin: '0 auto 30px' }}>
+          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(192, 132, 252, 0.25)', background: 'rgba(10, 10, 24, 0.7)', margin: '0 auto 30px' }}>
             <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center', width: '100%' }}>
               {isLoggedIn ? (
-                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc', width: '100%' }}>Active Interviewer: <strong style={{ color: '#fbbf24', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
+                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc', width: '100%' }}>Active Interviewer: <strong style={{ color: '#c084fc', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
               ) : (
                 <div className="action-text" style={{ fontSize: '1rem', color: '#94a3b8', width: '100%' }}>Adaptive AI Panel Workspace</div>
               )}
@@ -389,7 +389,7 @@ function LandingPage() {
                   Switch Interviewer
                 </button>
               ) : (
-                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#fbbf24', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600, margin: '0 auto' }}>
+                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#c084fc', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600, margin: '0 auto' }}>
                   Set Interviewer Name
                 </button>
               )}
@@ -399,8 +399,8 @@ function LandingPage() {
 
         {/* Right Column: Live RAG System Monitor Panel (Fills the space beautifully!) */}
         <div className="hero-right-panel">
-          <div className="cognitive-core-card glass-card" style={{ border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.75)' }}>
-            <h3 style={{ color: '#fbbf24', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+          <div className="cognitive-core-card glass-card" style={{ border: '1px solid rgba(192, 132, 252, 0.25)', background: 'rgba(10, 10, 24, 0.75)' }}>
+            <h3 style={{ color: '#c084fc', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
               <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', display: 'inline-block', boxShadow: '0 0 8px #34d399' }}></span>
               RAG Cognitive Core Monitor
             </h3>
@@ -430,7 +430,7 @@ function LandingPage() {
                 <span>Active Agent</span>
               </div>
               {terminalLogs.map((log, lIdx) => (
-                <div key={lIdx} style={{ color: log.includes('[INIT]') ? '#fbbf24' : log.includes('[RAG]') ? '#38bdf8' : log.includes('[OK]') ? '#34d399' : '#a78bfa', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                <div key={lIdx} style={{ color: log.includes('[INIT]') ? '#c084fc' : log.includes('[RAG]') ? '#38bdf8' : log.includes('[OK]') ? '#34d399' : '#a78bfa', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
                   {log}
                 </div>
               ))}

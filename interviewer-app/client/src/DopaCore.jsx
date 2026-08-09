@@ -9,7 +9,7 @@ export default function DopaCore({
   count = 20000,
   speedMult = 1,
   autoSpin = true,
-  theme = 'monochrome'
+  theme = 'colorful'
 }) {
   const mountRef = useRef(null);
 
@@ -50,7 +50,7 @@ export default function DopaCore({
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
     const target = new THREE.Vector3();
-    const hsl = {}; // Cache for HSL retrieval
+    const hsl = {};
     
     // INSTANCED MESH
     const geometry = new THREE.TetrahedronGeometry(0.25);
@@ -68,7 +68,7 @@ export default function DopaCore({
     }
 
     // CONTROL STUBS
-    const PARAMS = {"speed":0.613,"chaos":20,"coreSize":15.21};
+    const PARAMS = {"scale":140,"freq":2.2,"amp":11.4,"speed":1.4,"wells":2,"pull":8,"twist":2};
     const addControl = (id, label, min, max, val) => {
         return PARAMS[id] !== undefined ? PARAMS[id] : val;
     };
@@ -84,49 +84,74 @@ export default function DopaCore({
         controls.update();
 
         // SWARM LOGIC
-        const cCount = COUNT;
+        const countAlias = COUNT;
         for(let i=0; i<COUNT; i++) {
-             const speed = addControl("speed", "Integration Velocity", 0.1, 2.0, 0.4);
-             const chaos = addControl("chaos", "API Noise", 0.0, 50.0, 20.0);
-             const coreSize = addControl("coreSize", "CRM Core Radius", 1.0, 30.0, 10.0);
+             const scale = addControl("scale", "Fabric Size", 40, 260, 140.0);
+             const freq = addControl("freq", "Wave Frequency", 0.5, 6, 2.2);
+             const amp = addControl("amp", "Wave Amplitude", 0, 20, 8.0);
+             const speed = addControl("speed", "Flow Speed", 0, 4, 1.4);
+             const wells = addControl("wells", "Gravity Wells", 0, 4, 2.0);
+             const pull = addControl("pull", "Well Strength", 0, 20, 8.0);
+             const twist = addControl("twist", "Shear Twist", 0, 6, 2.0);
              
-             // 1. Calculate progression towards the core (0.0 = outer edge, 1.0 = core)
-             const norm = i / cCount;
-             const progress = (norm + time * speed * 0.2) % 1.0; 
-             // Accelerate the pull as it gets closer to the center
-             const easeProgress = Math.pow(progress, 1.5); 
+             const t = time * speed;
+             const fi = i / (countAlias > 0 ? countAlias : 1);
              
-             // 2. Spherical distribution (Fibonacci sphere for even 3D volume)
-             const goldenRatio = (1.0 + Math.sqrt(5.0)) / 2.0;
-             const theta = 2.0 * Math.PI * i / goldenRatio;
-             const phi = Math.acos(1.0 - 2.0 * norm);
+             // map particles onto a continuous 2D fabric (square grid folded via index)
+             const u = (Math.sin(i * 12.9898) * 43758.5453) % 1.0;
+             const v = (Math.sin(i * 78.233) * 12345.6789) % 1.0;
              
-             // 3. Radius logic: from distance 150 down to coreSize
-             const currentRadius = coreSize + (150.0 * (1.0 - easeProgress));
+             // center coordinates
+             let x = (u * 2.0 - 1.0) * scale;
+             let y = (v * 2.0 - 1.0) * scale;
              
-             // 4. Noise/Chaos: High on the outside APIs, completely 0 at the stable core
-             const instability = Math.pow(1.0 - progress, 2.0); 
-             const wobbleX = Math.sin(time * 2.0 + norm * 100.0) * chaos * instability;
-             const wobbleY = Math.cos(time * 1.5 + norm * 200.0) * chaos * instability;
-             const wobbleZ = Math.sin(time * 3.0 - norm * 300.0) * chaos * instability;
+             // base wave field (space-time ripples)
+             const wave =
+             Math.sin(x * 0.02 * freq + t) +
+             Math.sin(y * 0.02 * freq - t * 0.8);
              
-             // 5. Position assembly
-             const sinPhi = Math.sin(phi);
-             const x = (currentRadius * sinPhi * Math.cos(theta)) + wobbleX;
-             const y = (currentRadius * sinPhi * Math.sin(theta)) + wobbleY;
-             const z = (currentRadius * Math.cos(phi)) + wobbleZ;
+             let z = wave * amp;
              
-             target.set(x, y, z);
+             // multiple moving gravity wells (no arrays)
+             const w1x = Math.sin(t * 0.3) * scale * 0.4;
+             const w1y = Math.cos(t * 0.2) * scale * 0.4;
              
-             // 6. Color mapping: Outer = Cool Data Blue (~0.55), Core = High-Energy Purple/Neon (~0.8)
-             const hue = 0.55 + (0.25 * progress);
-             const saturation = 0.8 + (0.2 * progress);
+             const w2x = Math.sin(t * 0.5 + 2.0) * scale * 0.3;
+             const w2y = Math.cos(t * 0.4 + 1.0) * scale * 0.3;
              
-             // Core emits a pulse when data arrives
-             const corePulse = (progress > 0.95) ? Math.sin(time * 10.0) * 0.3 : 0.0;
-             const lightness = 0.2 + (0.6 * progress) + corePulse;
+             // distance fields
+             const dx1 = x - w1x;
+             const dy1 = y - w1y;
+             const d1 = Math.sqrt(dx1 * dx1 + dy1 * dy1 + 4.0);
              
-             color.setHSL(hue, saturation, Math.max(0.0, Math.min(1.0, lightness)));
+             const dx2 = x - w2x;
+             const dy2 = y - w2y;
+             const d2 = Math.sqrt(dx2 * dx2 + dy2 * dy2 + 4.0);
+             
+             // gravitational curvature (fabric bending)
+             const bend1 = -pull / d1;
+             const bend2 = -pull / d2;
+             
+             // blend wells
+             z += (bend1 + bend2) * (wells > 1.0 ? 1.0 : wells * 0.5);
+             
+             // shear twist (frame dragging illusion)
+             const ang = twist * (bend1 - bend2);
+             const cosA = Math.cos(ang);
+             const sinA = Math.sin(ang);
+             
+             const tx = x * cosA - y * sinA;
+             const ty = x * sinA + y * cosA;
+             
+             target.set(tx, ty, z);
+             
+             // color based on curvature (depth + energy)
+             const depth = Math.abs(z) / (amp + 0.001);
+             const hue = (0.6 - depth * 0.5 + 0.1 * Math.sin(t)) % 1.0;
+             const sat = 0.7 + 0.3 * depth;
+             const light = 0.2 + 0.6 * (1.0 - depth);
+             
+             color.setHSL(hue, sat, light);
 
              if (theme === 'monochrome') {
                color.getHSL(hsl);
