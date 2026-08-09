@@ -549,20 +549,27 @@ body {
   animation: fadeIn 0.3s ease;
 }
 
+.message-wrapper.user .message,
 .user .message {
-  background: rgba(255, 255, 255, 0.05);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(99, 102, 241, 0.25) 100%) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(139, 92, 246, 0.35) !important;
   border-bottom-right-radius: 4px;
   font-weight: 500;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(139, 92, 246, 0.15);
 }
 
+.message-wrapper.assistant .message,
 .assistant .message {
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(8px);
-  color: #e2e8f0;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(15, 23, 42, 0.75) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  color: #f1f5f9 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   border-bottom-left-radius: 4px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
 
 /* Loading Dots */

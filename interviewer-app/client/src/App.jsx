@@ -1077,8 +1077,8 @@ function BackgroundWrapper({ children }) {
       {isInterview && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2 }}>
           <LampLight theme="monochrome" count={15000} />
-          {/* Subtle overlay to reduce intensity behind the chat text */}
-          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(15, 23, 42, 0.4)', pointerEvents: 'none' }}></div>
+          {/* Enhanced dark overlay to ensure high text legibility over beam */}
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(7, 9, 14, 0.75)', pointerEvents: 'none' }}></div>
         </div>
       )}
       {children}
