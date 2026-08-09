@@ -295,6 +295,13 @@ function LandingPage() {
   const [password, setPassword] = useState('');
   const [showModal, setShowModal] = useState(false);
   const navigate = useNavigate();
+  
+  const [terminalLogs, setTerminalLogs] = useState([
+    '[INIT] RAG Cognitive core initialized.',
+    '[OK] SQLite storage layer verified. 3 tables synced.',
+    '[RAG] Vector brain mapped. 768 dimensions ready.',
+    '[SYS] Multi-turn difficulty calibration active.',
+  ]);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('interviewer_name');
@@ -326,57 +333,107 @@ function LandingPage() {
       .catch(console.error);
   }, []);
 
+  useEffect(() => {
+    const logs = [
+      '[OK] Cosine similarity algorithm verified.',
+      '[RAG] text-embedding-004 index loaded.',
+      '[SYS] Connected to Gemini-1.5-Pro adapter.',
+      '[METRIC] Sarah Johnson (Data Engineer) YOE verified: 10.',
+      '[SYS] Nietzsche persona prompt loaded.',
+      '[SYS] Sun Tzu persona prompt loaded.',
+      '[DB] Saved feedback sync completed.',
+      '[RAG] Mapping curriculum concepts across 31 days.',
+      '[OK] Auto-calibrated starting prompt difficulty.',
+      '[SYS] Active interviewer socket listening.'
+    ];
+    let idx = 0;
+    const interval = setInterval(() => {
+      setTerminalLogs(prev => {
+        const next = [...prev.slice(1), logs[idx]];
+        idx = (idx + 1) % logs.length;
+        return next;
+      });
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="landing-page-layout">
       <main className="hero-section">
+        {/* Left Column: Core Hero Info */}
         <div className="hero-content">
-          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(139, 92, 246, 0.12)', border: '1px solid rgba(139, 92, 246, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#c084fc', fontWeight: '600' }}>
-            <span className="rag-pulse"></span> True RAG Vector Search Brain
+          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#fbbf24', fontWeight: '600' }}>
+            <span className="rag-pulse" style={{ background: '#fbbf24', boxShadow: '0 0 8px #fbbf24' }}></span> True RAG Vector Search Brain
           </div>
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
           <p className="hero-desc">
-            Conducts adaptive technical interviews based on a<br/>candidate's actual cohort progress.<br/><br/>
-            Powered by a real-time<br/>Retrieval-Augmented Generation (RAG) Brain.
+            Conducts adaptive technical interviews calibrated dynamically against a candidate's actual curriculum progress and GitHub commit history.
           </p>
 
-          <div className="hero-action-box glass-welcome-card">
-            <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
+          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.7)' }}>
+            <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'flex-start', textAlign: 'left' }}>
               {isLoggedIn ? (
-                <div className="action-text" style={{ fontSize: '1.1rem' }}>Interviewer: <strong style={{ color: '#c084fc' }}>{username}</strong></div>
+                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc' }}>Active Interviewer: <strong style={{ color: '#fbbf24', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
               ) : (
                 <div className="action-text" style={{ fontSize: '1rem', color: '#94a3b8' }}>Adaptive AI Panel Workspace</div>
               )}
-              <button className="primary-btn hero-btn" onClick={() => navigate('/overview')}>
+              <button 
+                className="primary-btn hero-btn" 
+                onClick={() => navigate('/overview')}
+                style={{ width: '100%', padding: '14px', borderRadius: '10px', fontSize: '1rem', fontWeight: 'bold', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+              >
                 Enter AI System &rarr;
               </button>
               {isLoggedIn ? (
-                <button className="logout-text-link" onClick={handleClearIdentity} style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                <button className="logout-text-link" onClick={handleClearIdentity} style={{ color: '#94a3b8', fontSize: '0.85rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
                   Switch Interviewer
                 </button>
               ) : (
-                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#a78bfa', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem' }}>
+                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#fbbf24', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600 }}>
                   Set Interviewer Name
                 </button>
               )}
             </div>
           </div>
-          
-          <div className="hero-logo-showcase floating-logo-container">
-            <img src="/logo.jpg" alt="AI Cohort Logo" className="floating-logo-img" />
-          </div>
+        </div>
 
-          <div className="hero-stats">
-            <div className="stat-item">
-              <span className="stat-number">{stats?.candidates || 20}</span>
-              <span className="stat-label">Candidates</span>
+        {/* Right Column: Live RAG System Monitor Panel (Fills the space beautifully!) */}
+        <div className="hero-right-panel">
+          <div className="cognitive-core-card glass-card" style={{ border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.75)' }}>
+            <h3 style={{ color: '#fbbf24', fontSize: '1.25rem', marginBottom: '20px', display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid rgba(255,255,255,0.08)', paddingBottom: '12px' }}>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#34d399', display: 'inline-block', boxShadow: '0 0 8px #34d399' }}></span>
+              RAG Cognitive Core Monitor
+            </h3>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>Active Roster</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#f8fafc', fontFamily: 'var(--font-mono)' }}>{stats?.candidates || 20}</span>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>Embed Dims</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#38bdf8', fontFamily: 'var(--font-mono)' }}>768 Dims</span>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>Curriculum</span>
+                <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: '#c084fc', fontFamily: 'var(--font-mono)' }}>31 Days</span>
+              </div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '10px', border: '1px solid rgba(255,255,255,0.03)' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>RAG Engine</span>
+                <span style={{ fontSize: '1.05rem', fontWeight: 'bold', color: '#34d399', fontFamily: 'var(--font-heading)', display: 'block', marginTop: '4px' }}>Cosine Sim</span>
+              </div>
             </div>
-            <div className="stat-item">
-              <span className="stat-number">{stats?.days || 31}</span>
-              <span className="stat-label">Day Curriculum</span>
-            </div>
-            <div className="stat-item">
-              <span className="stat-number">768</span>
-              <span className="stat-label">Vector Embedding Dims</span>
+
+            <div className="terminal-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(52,211,153,0.15)', paddingBottom: '4px', marginBottom: '6px', color: '#64748b', fontSize: '0.7rem' }}>
+                <span>Real-Time Index Logs</span>
+                <span>Active Agent</span>
+              </div>
+              {terminalLogs.map((log, lIdx) => (
+                <div key={lIdx} style={{ color: log.includes('[INIT]') ? '#fbbf24' : log.includes('[RAG]') ? '#38bdf8' : log.includes('[OK]') ? '#34d399' : '#a78bfa', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                  {log}
+                </div>
+              ))}
             </div>
           </div>
         </div>
