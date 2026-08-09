@@ -296,23 +296,19 @@ function LandingPage() {
     }
   }, []);
 
-  const handleLogin = (e) => {
+  const handleSaveIdentity = (e) => {
     e.preventDefault();
-    if (username.trim() && email.trim() && password.trim()) {
+    if (username.trim()) {
       localStorage.setItem('interviewer_name', username.trim());
-      localStorage.setItem('interviewer_email', email.trim());
       setIsLoggedIn(true);
       setShowModal(false);
     }
   };
 
-  const handleLogout = () => {
+  const handleClearIdentity = () => {
     localStorage.removeItem('interviewer_name');
-    localStorage.removeItem('interviewer_email');
     setIsLoggedIn(false);
     setUsername('');
-    setEmail('');
-    setPassword('');
   };
 
   useEffect(() => {
@@ -334,17 +330,21 @@ function LandingPage() {
 
           <div className="hero-action-box glass-welcome-card">
             <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '12px', alignItems: 'center' }}>
-              {isLoggedIn && <div className="action-text">Welcome back, {username}</div>}
+              {isLoggedIn ? (
+                <div className="action-text" style={{ fontSize: '1.1rem' }}>Interviewer: <strong style={{ color: '#c084fc' }}>{username}</strong></div>
+              ) : (
+                <div className="action-text" style={{ fontSize: '1rem', color: '#94a3b8' }}>Adaptive AI Panel Workspace</div>
+              )}
               <button className="primary-btn hero-btn" onClick={() => navigate('/overview')}>
                 Enter AI System &rarr;
               </button>
               {isLoggedIn ? (
-                <button className="logout-text-link" onClick={handleLogout}>
-                  Logout
+                <button className="logout-text-link" onClick={handleClearIdentity} style={{ color: '#94a3b8', fontSize: '0.85rem' }}>
+                  Switch Interviewer
                 </button>
               ) : (
-                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#a78bfa', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.9rem' }}>
-                  Interviewer Login
+                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#a78bfa', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem' }}>
+                  Set Interviewer Name
                 </button>
               )}
             </div>
@@ -372,6 +372,23 @@ function LandingPage() {
           )}
         </div>
       </main>
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '400px' }}>
+            <button className="close-btn" onClick={() => setShowModal(false)}>&times;</button>
+            <form onSubmit={handleSaveIdentity} className="login-form" style={{ width: '100%' }}>
+              <h3 style={{ marginBottom: '12px', color: '#f8fafc' }}>Interviewer Identity</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.85rem', marginBottom: '20px' }}>Enter your name to attribute completed evaluation reports.</p>
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', marginBottom: '6px', color: '#94a3b8', fontSize: '0.85rem' }}>Interviewer Name</label>
+                <input type="text" className="login-input" value={username} onChange={e => setUsername(e.target.value)} placeholder="e.g. Sarthak / Alex" required />
+              </div>
+              <button type="submit" className="login-btn">Save & Enter Workspace</button>
+            </form>
+          </div>
+        </div>
+      )}
 
       <section className="features-section" style={{ padding: '100px 10%', background: 'rgba(0,0,0,0.8)', zIndex: 10 }}>
         <RevealOnScroll>
