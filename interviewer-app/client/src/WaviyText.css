@@ -14,15 +14,18 @@
   position: relative;
   display: inline-block;
   text-transform: uppercase;
-  color: #a78bfa; 
-  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
-  animation: flip 8s infinite;
-  animation-delay: calc(.4s * var(--i));
-  transition: transform 0.3s;
+  color: inherit; 
+  -webkit-text-fill-color: inherit;
+  animation: wave 4s ease-in-out infinite;
+  animation-delay: calc(0.08s * var(--i));
+  transition: all 0.3s ease;
 }
 
-@keyframes flip {
-  0%, 80% {
-    transform: rotateY(360deg);
+@keyframes wave {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
   }
 }
