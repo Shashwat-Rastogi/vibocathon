@@ -932,7 +932,7 @@ body {
   max-width: 1280px;
   width: 100%;
   margin: 0 auto;
-  padding: 20px 48px;
+  padding: 60px 48px;
   text-align: left;
   z-index: 10;
 }
@@ -1385,6 +1385,28 @@ body {
   100% {
     width: 180px;
     opacity: 0.85;
+  }
+}
+
+.prism-splash-logo {
+  width: 140px;
+  height: 140px;
+  border-radius: 28px;
+  margin-bottom: 24px;
+  object-fit: cover;
+  border: 2px solid rgba(244, 114, 182, 0.45);
+  box-shadow: 0 0 35px rgba(244, 114, 182, 0.35), 0 0 70px rgba(249, 115, 22, 0.2);
+  animation: prismLogoReveal 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes prismLogoReveal {
+  0% {
+    opacity: 0;
+    transform: scale(0.85) rotate(-8deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
   }
 }
 

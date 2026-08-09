@@ -358,21 +358,7 @@ function LandingPage() {
   }, []);
 
   return (
-    <div className="landing-page-layout" style={{ display: 'flex', flexDirection: 'column', padding: '24px 40px', boxSizing: 'border-box', minHeight: '100vh', width: '100%' }}>
-      <header className="landing-header glass-card" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', padding: '14px 28px', marginBottom: '24px', borderRadius: '12px', border: '1px solid rgba(244, 114, 182, 0.2)', background: 'rgba(10, 10, 24, 0.65)', backdropFilter: 'blur(20px)', flexShrink: 0 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '32px', height: '32px', borderRadius: '8px', objectFit: 'cover', border: '1px solid rgba(244, 114, 182, 0.35)' }} />
-          <span style={{ fontSize: '1.15rem', fontWeight: 'bold', color: '#f8fafc', letterSpacing: '-0.02em', fontFamily: 'var(--font-heading)' }}>AI Cohort Agent</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {isLoggedIn ? (
-            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Interviewer: <strong style={{ color: '#f97316' }}>{username}</strong></span>
-          ) : (
-            <span style={{ fontSize: '0.85rem', color: '#64748b' }}>Offline Mode</span>
-          )}
-        </div>
-      </header>
-
+    <div className="landing-page-layout">
       <main className="hero-section">
         {/* Left Column: Core Hero Info */}
         <div className="hero-content">
@@ -2077,15 +2063,15 @@ function SplashIntro({ onComplete }) {
   const [fade, setFade] = useState(false);
 
   useEffect(() => {
-    // Fade out after 3.2 seconds
+    // Fade out starts at 9.2 seconds
     const fadeTimer = setTimeout(() => {
       setFade(true);
-    }, 3200);
+    }, 9200);
 
-    // Complete after 3.8 seconds (fade transition complete)
+    // Complete after 10 seconds (fade transition complete)
     const completeTimer = setTimeout(() => {
       onComplete();
-    }, 3800);
+    }, 10000);
 
     return () => {
       clearTimeout(fadeTimer);
@@ -2099,6 +2085,11 @@ function SplashIntro({ onComplete }) {
         <DopaCore theme="colorful" count={12000} autoSpin={true} speedMult={1} />
       </div>
       <div className="splash-content">
+        <img 
+          src="/logo.jpg" 
+          alt="Prism Brand Logo" 
+          className="prism-splash-logo"
+        />
         <h1 className="prism-logo">PRISM</h1>
         <div className="prism-subbar"></div>
       </div>
