@@ -1,8 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;800&family=Inter:wght@400;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap');
 
 :root {
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Sora', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
   --bg-dark: #07090e;
   --bg-gradient: radial-gradient(circle at 50% 20%, #111827 0%, #07090e 100%);
   --text-primary: #f8fafc;
@@ -16,8 +17,20 @@
   font-family: var(--font-body);
 }
 
-h1, h2, h3, h4, h5, h6, .fold-text {
-  font-family: var(--font-heading) !important;
+h1, h2, h3, h4, h5, h6, .candidate-name, .nav-item, .sidebar-logo, .hero-title, .workspace-label, .action-text, .nav-logo {
+  font-family: var(--font-heading);
+}
+
+/* Data / Numeric Elements */
+.experience-pill,
+.stat-number,
+.score-badge,
+.question-tracker,
+.completion-signal,
+.sidebar-stats-card span:last-child,
+.data-mono {
+  font-family: var(--font-mono);
+  font-weight: 500;
 }
 
 * {
