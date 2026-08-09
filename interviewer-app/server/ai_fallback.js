@@ -1,4 +1,43 @@
 import { GoogleGenAI } from '@google/genai';
+import https from 'https';
+
+const httpsPost = (url, headers, body) => {
+    return new Promise((resolve, reject) => {
+        try {
+            const urlObj = new URL(url);
+            const options = {
+                hostname: urlObj.hostname,
+                path: urlObj.pathname + urlObj.search,
+                method: 'POST',
+                headers: headers
+            };
+            const req = https.request(options, (res) => {
+                let data = '';
+                res.on('data', (chunk) => data += chunk);
+                res.on('end', () => {
+                    resolve({
+                        ok: res.statusCode >= 200 && res.statusCode < 300,
+                        status: res.statusCode,
+                        text: () => Promise.resolve(data),
+                        json: () => {
+                            try {
+                                return Promise.resolve(JSON.parse(data));
+                            } catch (e) {
+                                return Promise.reject(new Error("Invalid JSON returned: " + data));
+                            }
+                        }
+                    });
+                });
+            });
+            req.on('error', (err) => reject(err));
+            req.write(body);
+            req.end();
+        } catch (e) {
+            reject(e);
+        }
+    });
+};
+
 
 let geminiClients = [];
 let currentGeminiIndex = 0;
@@ -81,14 +120,14 @@ export const generateContentWithFallback = async (model, contents, config) => {
                     groqBody.response_format = { type: "json_object" };
                 }
 
-                const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
+                const groqRes = await httpsPost(
+                    'https://api.groq.com/openai/v1/chat/completions',
+                    {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${groqKeys[gi]}`
                     },
-                    body: JSON.stringify(groqBody)
-                });
+                    JSON.stringify(groqBody)
+                );
 
                 if (!groqRes.ok) {
                     const text = await groqRes.text();
