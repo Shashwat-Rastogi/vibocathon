@@ -934,9 +934,9 @@ function OverviewDashboard() {
   return (
     <div className="dashboard-container">
       <aside className="dashboard-sidebar">
-        <div className="sidebar-logo" style={{ cursor: 'pointer' }} onClick={() => navigate('/')}>
-          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', marginRight: '8px', verticalAlign: 'middle', objectFit: 'cover' }} />
-          AI Cohort Agent
+        <div className="sidebar-logo" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '10px' }} onClick={() => navigate('/')}>
+          <img src="/logo.jpg" alt="Logo" style={{ width: '28px', height: '28px', borderRadius: '6px', objectFit: 'cover' }} />
+          <span>AI Cohort Agent</span>
         </div>
         <nav className="sidebar-nav">
           <div className="nav-item active">
@@ -955,63 +955,84 @@ function OverviewDashboard() {
       </aside>
 
       <main className="dashboard-main">
-        <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="dashboard-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '36px' }}>
           <div className="dashboard-title">
-            <h1>System Overview</h1>
-            <p>Welcome back, <strong style={{ color: 'white' }}>{username}</strong>. Real-time candidate intelligence and cohort progress metrics.</p>
+            <h1 style={{ fontSize: '1.85rem', fontWeight: 700, color: '#f8fafc', marginBottom: '6px' }}>System Overview</h1>
+            <p style={{ color: '#94a3b8', fontSize: '0.95rem' }}>Welcome back, <strong style={{ color: '#f8fafc' }}>{username}</strong>. Real-time candidate intelligence and cohort metrics.</p>
           </div>
-          <button className="primary-btn hero-btn" style={{ padding: '10px 20px', fontSize: '0.95rem' }} onClick={() => navigate('/candidates')}>
+          <button 
+            style={{ 
+              padding: '10px 22px', 
+              fontSize: '0.9rem', 
+              fontWeight: 600, 
+              background: 'rgba(139, 92, 246, 0.12)', 
+              color: '#c084fc', 
+              border: '1px solid rgba(139, 92, 246, 0.3)', 
+              borderRadius: '10px', 
+              cursor: 'pointer', 
+              transition: 'all 0.2s ease', 
+              whiteSpace: 'nowrap' 
+            }} 
+            onClick={() => navigate('/candidates')}
+          >
             Select Candidate &rarr;
           </button>
         </div>
 
         {/* Stats Grid */}
-        <div className="stats-overview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
+        <div className="stats-overview-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '40px' }}>
           <RevealOnScroll delay={0.1}>
             <div className="glass-card" style={{ padding: '24px' }}>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Candidate Roster</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: 'white' }}>{stats?.candidates || 15}</div>
-              <div style={{ color: '#10b981', fontSize: '0.85rem', marginTop: '4px' }}>Active Cohort Members</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>Candidate Roster</div>
+              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>{stats?.candidates || 15}</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(16, 185, 129, 0.12)', color: '#34d399', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#34d399' }}></span>
+                Active Members
+              </div>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.2}>
             <div className="glass-card" style={{ padding: '24px' }}>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>Curriculum Scope</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#a78bfa' }}>{stats?.days || 31} Days</div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>8 Comprehensive Modules</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>Curriculum Scope</div>
+              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>{stats?.days || 31} <span style={{ fontSize: '1.25rem', color: '#94a3b8', fontWeight: 500 }}>Days</span></div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(168, 85, 247, 0.12)', color: '#c084fc', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+                8 Modules
+              </div>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.3}>
             <div className="glass-card" style={{ padding: '24px' }}>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.05em' }}>RAG Engine</div>
-              <div style={{ fontSize: '2.5rem', fontWeight: 'bold', color: '#38bdf8' }}>Active</div>
-              <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '4px' }}>Vector Search Knowledge Base</div>
+              <div style={{ color: '#94a3b8', fontSize: '0.75rem', textTransform: 'uppercase', marginBottom: '10px', letterSpacing: '0.08em', fontWeight: 600 }}>RAG Vector Index</div>
+              <div style={{ fontSize: '2.25rem', fontWeight: 700, color: '#f8fafc', marginBottom: '8px' }}>Operational</div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: 'rgba(56, 189, 248, 0.12)', color: '#38bdf8', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '20px', fontWeight: 600 }}>
+                True Vector Search
+              </div>
             </div>
           </RevealOnScroll>
         </div>
 
         {/* Quick Hub Navigation Cards */}
-        <h2 style={{ color: 'white', marginBottom: '20px', fontSize: '1.4rem' }}>Quick Navigation Hub</h2>
+        <h2 style={{ color: '#f8fafc', marginBottom: '20px', fontSize: '1.25rem', fontWeight: 700 }}>Quick Navigation Hub</h2>
         <div className="hub-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px', marginBottom: '40px' }}>
           <RevealOnScroll delay={0.1}>
-            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => navigate('/candidates')}>
-              <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px' }}>Candidates</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '16px' }}>View candidate profiles, completion signals, YOE, and launch customized technical interviews.</p>
-              <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '0.9rem' }}>Open Candidates &rarr;</span>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer' }} onClick={() => navigate('/candidates')}>
+              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.15rem' }}>Candidates</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>View candidate profiles, completion signals, YOE, and launch customized technical interviews.</p>
+              <span style={{ color: '#c084fc', fontWeight: 600, fontSize: '0.85rem' }}>Open Candidates &rarr;</span>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.2}>
-            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => navigate('/interviews')}>
-              <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px' }}>Interview History</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '16px' }}>Review past interview logs, timestamps, and candidate roles filtered by interviewer.</p>
-              <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '0.9rem' }}>View History &rarr;</span>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer' }} onClick={() => navigate('/interviews')}>
+              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.15rem' }}>Interview History</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>Review past interview logs, timestamps, and candidate roles filtered by interviewer.</p>
+              <span style={{ color: '#c084fc', fontWeight: 600, fontSize: '0.85rem' }}>View History &rarr;</span>
             </div>
           </RevealOnScroll>
           <RevealOnScroll delay={0.3}>
-            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer', transition: 'all 0.3s ease' }} onClick={() => navigate('/reports')}>
-              <h3 style={{ color: 'white', marginTop: 0, marginBottom: '8px' }}>Evaluation Reports</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: '1.5', marginBottom: '16px' }}>Access AI-generated candidate scores, strengths/weaknesses, and revision decks.</p>
-              <span style={{ color: '#a78bfa', fontWeight: 'bold', fontSize: '0.9rem' }}>Explore Reports &rarr;</span>
+            <div className="glass-card" style={{ padding: '28px', cursor: 'pointer' }} onClick={() => navigate('/reports')}>
+              <h3 style={{ color: '#f8fafc', marginTop: 0, marginBottom: '8px', fontSize: '1.15rem' }}>Evaluation Reports</h3>
+              <p style={{ color: '#94a3b8', fontSize: '0.9rem', lineHeight: 1.6, marginBottom: '20px' }}>Access AI-generated candidate scores, strengths/weaknesses, and revision decks.</p>
+              <span style={{ color: '#c084fc', fontWeight: 600, fontSize: '0.85rem' }}>Explore Reports &rarr;</span>
             </div>
           </RevealOnScroll>
         </div>
@@ -1037,19 +1058,20 @@ function BackgroundWrapper({ children }) {
         </div>
       )}
       {(isCandidates || isInterviews || isReports || isOverview) && (
-        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2 }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: -2, background: '#07090e' }}>
           <Antigravity
-            count={250}
-            magnetRadius={8}
-            ringRadius={8}
-            waveSpeed={0.3}
-            waveAmplitude={1}
-            particleSize={1.5}
-            lerpSpeed={0.05}
-            color={'#ffffff'}
+            count={90}
+            magnetRadius={5}
+            ringRadius={5}
+            waveSpeed={0.12}
+            waveAmplitude={0.7}
+            particleSize={1.0}
+            lerpSpeed={0.03}
+            color={'#475569'}
             autoAnimate={true}
-            particleVariance={1}
+            particleVariance={0.6}
           />
+          <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(ellipse at 50% 15%, rgba(30, 27, 75, 0.2) 0%, rgba(7, 9, 14, 0.9) 100%)', pointerEvents: 'none' }}></div>
         </div>
       )}
       {isInterview && (
