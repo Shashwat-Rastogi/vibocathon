@@ -217,6 +217,7 @@ All AI assistance is documented in detail in [`AI_USAGE_LOG.md`](./AI_USAGE_LOG.
 | Name | Role |
 |------|------|
 | **Shashwat Rastogi** | Full-Stack Developer & Product Designer |
+| **Sparsh Singh** | Full-Stack Developer & Product Designer |
 
 ---
 
