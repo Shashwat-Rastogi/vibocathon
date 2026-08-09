@@ -362,7 +362,7 @@ function LandingPage() {
       <main className="hero-section">
         {/* Left Column: Core Hero Info */}
         <div className="hero-content">
-          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#fbbf24', fontWeight: '600' }}>
+          <div className="rag-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', marginBottom: '16px', background: 'rgba(251, 191, 36, 0.12)', border: '1px solid rgba(251, 191, 36, 0.3)', padding: '6px 16px', borderRadius: '20px', fontSize: '0.8rem', color: '#fbbf24', fontWeight: '600', alignSelf: 'center', margin: '0 auto 16px' }}>
             <span className="rag-pulse" style={{ background: '#fbbf24', boxShadow: '0 0 8px #fbbf24' }}></span> True RAG Vector Search Brain
           </div>
           <WaviyText text="AI COHORT INTERVIEW AGENT" />
@@ -370,12 +370,12 @@ function LandingPage() {
             Conducts adaptive technical interviews calibrated dynamically against a candidate's actual curriculum progress and GitHub commit history.
           </p>
 
-          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.7)' }}>
-            <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'flex-start', textAlign: 'left' }}>
+          <div className="hero-action-box glass-welcome-card" style={{ border: '1px solid rgba(251, 191, 36, 0.22)', background: 'rgba(15, 23, 42, 0.7)', margin: '0 auto 30px' }}>
+            <div className="action-box-inner" style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center', width: '100%' }}>
               {isLoggedIn ? (
-                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc' }}>Active Interviewer: <strong style={{ color: '#fbbf24', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
+                <div className="action-text" style={{ fontSize: '1.1rem', color: '#f8fafc', width: '100%' }}>Active Interviewer: <strong style={{ color: '#fbbf24', fontFamily: 'var(--font-heading)' }}>{username}</strong></div>
               ) : (
-                <div className="action-text" style={{ fontSize: '1rem', color: '#94a3b8' }}>Adaptive AI Panel Workspace</div>
+                <div className="action-text" style={{ fontSize: '1rem', color: '#94a3b8', width: '100%' }}>Adaptive AI Panel Workspace</div>
               )}
               <button 
                 className="primary-btn hero-btn" 
@@ -385,11 +385,11 @@ function LandingPage() {
                 Enter AI System &rarr;
               </button>
               {isLoggedIn ? (
-                <button className="logout-text-link" onClick={handleClearIdentity} style={{ color: '#94a3b8', fontSize: '0.85rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+                <button className="logout-text-link" onClick={handleClearIdentity} style={{ color: '#94a3b8', fontSize: '0.85rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, margin: '0 auto' }}>
                   Switch Interviewer
                 </button>
               ) : (
-                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#fbbf24', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600 }}>
+                <button className="logout-text-link" onClick={() => setShowModal(true)} style={{ color: '#fbbf24', cursor: 'pointer', background: 'none', border: 'none', fontSize: '0.85rem', padding: 0, fontWeight: 600, margin: '0 auto' }}>
                   Set Interviewer Name
                 </button>
               )}
