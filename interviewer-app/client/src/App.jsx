@@ -452,51 +452,6 @@ function LandingPage() {
         </div>
       </section>
 
-
-      {showModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <button className="close-btn" onClick={() => setShowModal(false)}>&times;</button>
-            <form onSubmit={handleLogin} className="login-form" style={{ width: '100%', maxWidth: '100%', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <h2 style={{ marginBottom: '8px', marginTop: 0, color: 'var(--text-primary)' }}>Interviewer Login</h2>
-              <input 
-                type="email" 
-                className="login-input typewriter-input" 
-                placeholder="Enter your Gmail" 
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  playTypingSound();
-                }}
-                required
-              />
-              <input 
-                type="password" 
-                className="login-input typewriter-input" 
-                placeholder="Enter your password" 
-                value={password}
-                onChange={(e) => {
-                  setPassword(e.target.value);
-                  playTypingSound();
-                }}
-                required
-              />
-              <input 
-                type="text" 
-                className="login-input typewriter-input" 
-                placeholder="Enter your name" 
-                value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                  playTypingSound();
-                }}
-                required
-              />
-              <button type="submit" className="login-btn" style={{ marginTop: '8px' }}>Log In</button>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
