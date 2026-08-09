@@ -1,11 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700&family=Space+Grotesk:wght@600;700&family=Sora:wght@600;700;800&display=swap');
 
 :root {
-  --font-heading: 'Sora', sans-serif;
-  --font-body: 'Manrope', sans-serif;
+  --font-heading: 'Space Grotesk', 'Sora', sans-serif;
+  --font-body: 'Plus Jakarta Sans', 'Manrope', sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
+  --font-card-name: 'Space Grotesk', sans-serif;
   --bg-dark: #030712;
-  --bg-gradient: radial-gradient(ellipse at 50% 10%, rgba(251, 191, 36, 0.15) 0%, rgba(3, 7, 18, 0.98) 100%);
+  --bg-gradient: radial-gradient(ellipse at 50% 10%, rgba(251, 191, 36, 0.12) 0%, rgba(3, 7, 18, 0.98) 100%);
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --accent: #f59e0b;
@@ -21,6 +22,13 @@
 
 h1, h2, h3, h4, h5, h6, .candidate-name, .nav-item, .sidebar-logo, .hero-title, .workspace-label, .action-text, .nav-logo {
   font-family: var(--font-heading);
+  letter-spacing: -0.02em;
+}
+
+.candidate-name {
+  font-family: var(--font-card-name) !important;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 /* Gold Gradient Text Headings */

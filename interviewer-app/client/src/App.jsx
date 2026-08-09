@@ -707,31 +707,98 @@ function CandidateSelection() {
               const missionsCompleted = c.signals?.missionsCompleted || (c.missions || []).filter(m => m.passed).length || 0;
               const progressPct = Math.min(100, Math.round((missionsCompleted / 31) * 100));
               const initials = c.member.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+              
+              // Dynamic role-based color template palette
+              const r = (c.member.jobRole || '').toLowerCase();
+              let theme = {
+                accent: '#34d399',
+                bg: 'rgba(8, 30, 24, 0.65)',
+                border: 'rgba(52, 211, 153, 0.28)',
+                avatar: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
+                badgeBg: 'rgba(52, 211, 153, 0.12)',
+                badgeColor: '#34d399',
+                progressGradient: 'linear-gradient(90deg, #34d399 0%, #10b981 100%)',
+                leftBorder: '4px solid #34d399'
+              };
+
+              if (r.includes('ai') || r.includes('ml') || r.includes('data science')) {
+                theme = {
+                  accent: '#38bdf8',
+                  bg: 'rgba(14, 28, 48, 0.65)',
+                  border: 'rgba(56, 189, 248, 0.28)',
+                  avatar: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+                  badgeBg: 'rgba(56, 189, 248, 0.12)',
+                  badgeColor: '#38bdf8',
+                  progressGradient: 'linear-gradient(90deg, #38bdf8 0%, #818cf8 100%)',
+                  leftBorder: '4px solid #38bdf8'
+                };
+              } else if (r.includes('architect') || r.includes('distinguished') || r.includes('principal')) {
+                theme = {
+                  accent: '#c084fc',
+                  bg: 'rgba(26, 16, 46, 0.65)',
+                  border: 'rgba(192, 132, 252, 0.28)',
+                  avatar: 'linear-gradient(135deg, #c084fc 0%, #7c3aed 100%)',
+                  badgeBg: 'rgba(192, 132, 252, 0.12)',
+                  badgeColor: '#c084fc',
+                  progressGradient: 'linear-gradient(90deg, #c084fc 0%, #a855f7 100%)',
+                  leftBorder: '4px solid #c084fc'
+                };
+              } else if (r.includes('devops') || r.includes('infrastructure') || r.includes('support')) {
+                theme = {
+                  accent: '#fbbf24',
+                  bg: 'rgba(30, 22, 10, 0.65)',
+                  border: 'rgba(251, 191, 36, 0.28)',
+                  avatar: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+                  badgeBg: 'rgba(251, 191, 36, 0.12)',
+                  badgeColor: '#fbbf24',
+                  progressGradient: 'linear-gradient(90deg, #fbbf24 0%, #f59e0b 100%)',
+                  leftBorder: '4px solid #fbbf24'
+                };
+              } else if (r.includes('analyst') || r.includes('marketing') || r.includes('hr') || r.includes('researcher')) {
+                theme = {
+                  accent: '#fb7185',
+                  bg: 'rgba(30, 12, 22, 0.65)',
+                  border: 'rgba(251, 113, 133, 0.28)',
+                  avatar: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)',
+                  badgeBg: 'rgba(251, 113, 133, 0.12)',
+                  badgeColor: '#fb7185',
+                  progressGradient: 'linear-gradient(90deg, #fb7185 0%, #f43f5e 100%)',
+                  leftBorder: '4px solid #fb7185'
+                };
+              }
 
               return (
-                <RevealOnScroll key={c.member.id || index} delay={(index % 10) * 0.05}>
+                <RevealOnScroll key={c.member.id || index} delay={(index % 10) * 0.04}>
                   <div 
                     onClick={() => navigate('/interview', { state: { candidate: c, persona, interviewerType } })} 
                     className="candidate-grid-card"
-                    style={{ padding: '22px', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '16px', background: 'rgba(15, 23, 42, 0.55)', transition: 'all 0.3s ease' }}
+                    style={{ 
+                      padding: '22px',
+                      border: `1px solid ${theme.border}`,
+                      borderLeft: theme.leftBorder,
+                      borderRadius: '16px',
+                      background: theme.bg,
+                      transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+                    }}
                   >
                     <div className="candidate-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                         <div className="candidate-avatar" style={{
-                          width: '42px', height: '42px', borderRadius: '12px',
-                          background: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
-                          color: 'white', fontWeight: 'bold', fontSize: '1rem',
+                          width: '44px', height: '44px', borderRadius: '12px',
+                          background: theme.avatar,
+                          color: 'white', fontWeight: 'bold', fontSize: '1.05rem',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
-                          boxShadow: '0 4px 12px rgba(139, 92, 246, 0.3)'
+                          boxShadow: `0 4px 12px ${theme.border}`,
+                          fontFamily: 'var(--font-card-name)'
                         }}>
                           {initials}
                         </div>
                         <div>
-                          <div className="candidate-name" style={{ fontSize: '1.15rem', color: '#f8fafc', fontWeight: 700 }}>{c.member.name}</div>
-                          <div className="candidate-role" style={{ fontSize: '0.85rem', color: '#94a3b8' }}>{c.member.jobRole}</div>
+                          <div className="candidate-name" style={{ fontSize: '1.2rem', color: '#f8fafc', fontWeight: 700, fontFamily: 'var(--font-card-name)' }}>{c.member.name}</div>
+                          <div className="candidate-role" style={{ fontSize: '0.85rem', color: '#94a3b8', fontFamily: 'var(--font-body)' }}>{c.member.jobRole}</div>
                         </div>
                       </div>
-                      <span className="experience-pill" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '14px', background: 'rgba(255,255,255,0.06)', color: '#38bdf8', border: '1px solid rgba(56, 189, 248, 0.2)' }}>
+                      <span className="experience-pill" style={{ fontFamily: 'var(--font-mono)', fontSize: '0.75rem', padding: '4px 10px', borderRadius: '14px', background: theme.badgeBg, color: theme.badgeColor, border: `1px solid ${theme.border}` }}>
                         {c.member.yearsExperience} YOE
                       </span>
                     </div>
@@ -740,15 +807,15 @@ function CandidateSelection() {
                     <div className="completion-signal" style={{ margin: '12px 0 14px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: '#94a3b8', marginBottom: '6px', fontWeight: '600' }}>
                         <span>Cohort Progress</span>
-                        <span style={{ color: '#a78bfa', fontFamily: 'var(--font-mono)' }}>{missionsCompleted}/31 Missions ({progressPct}%)</span>
+                        <span style={{ color: theme.accent, fontFamily: 'var(--font-mono)' }}>{missionsCompleted}/31 Missions ({progressPct}%)</span>
                       </div>
                       <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.06)', borderRadius: '4px', overflow: 'hidden' }}>
                         <div style={{
                           width: `${progressPct}%`,
                           height: '100%',
-                          background: progressPct >= 80 ? 'linear-gradient(90deg, #a78bfa 0%, #34d399 100%)' : 'linear-gradient(90deg, #a78bfa 0%, #fbbf24 100%)',
+                          background: theme.progressGradient,
                           borderRadius: '4px',
-                          boxShadow: '0 0 8px rgba(167, 139, 250, 0.4)'
+                          boxShadow: `0 0 8px ${theme.accent}`
                         }} />
                       </div>
                     </div>
@@ -756,12 +823,12 @@ function CandidateSelection() {
                     {/* Candidate Signal Tags */}
                     <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '16px' }}>
                       {c.signals?.missionsFirstTry !== undefined && (
-                        <span style={{ fontSize: '0.7rem', color: '#34d399', background: 'rgba(16, 185, 129, 0.1)', padding: '2px 8px', borderRadius: '8px', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
+                        <span style={{ fontSize: '0.7rem', color: theme.badgeColor, background: theme.badgeBg, padding: '3px 9px', borderRadius: '8px', border: `1px solid ${theme.border}`, fontFamily: 'var(--font-mono)' }}>
                           {c.signals.missionsFirstTry} First Try
                         </span>
                       )}
                       {c.signals?.commitDays !== undefined && (
-                        <span style={{ fontSize: '0.7rem', color: '#c084fc', background: 'rgba(139, 92, 246, 0.1)', padding: '2px 8px', borderRadius: '8px', border: '1px solid rgba(139, 92, 246, 0.2)' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#e2e8f0', background: 'rgba(255,255,255,0.06)', padding: '3px 9px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.1)', fontFamily: 'var(--font-mono)' }}>
                           {c.signals.commitDays} Commit Days
                         </span>
                       )}
@@ -769,7 +836,7 @@ function CandidateSelection() {
 
                     <div className="candidate-stats" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
                       <span style={{ fontSize: '0.75rem', color: '#64748b' }}>{c.member.education || 'CS Degree'}</span>
-                      <span className="start-action" style={{ color: '#c084fc', fontWeight: 'bold', fontSize: '0.85rem' }}>Start Interview &rarr;</span>
+                      <span className="start-action" style={{ color: theme.accent, fontWeight: 'bold', fontSize: '0.85rem' }}>Start Interview &rarr;</span>
                     </div>
                   </div>
                 </RevealOnScroll>
