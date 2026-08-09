@@ -45,7 +45,59 @@ export const generateContentWithFallback = async (model, contents, config) => {
         }
     }
 
-    // 2. Fallback to Freemodel API
+    // 2. Fallback to Groq (fast, free, reliable)
+    const groqKey = process.env.GROQ_API_KEY;
+    if (groqKey) {
+        console.log("Trying Groq API fallback...");
+        try {
+            let groqMessages = [];
+            if (config?.systemInstruction) {
+                groqMessages.push({ role: 'system', content: config.systemInstruction });
+            }
+            if (typeof contents === 'string') {
+                groqMessages.push({ role: 'user', content: contents });
+            } else if (Array.isArray(contents)) {
+                contents.forEach(msg => {
+                    groqMessages.push({
+                        role: msg.role === 'model' ? 'assistant' : 'user',
+                        content: msg.parts[0].text
+                    });
+                });
+            }
+
+            const groqBody = {
+                model: 'llama-3.1-70b-versatile',
+                messages: groqMessages,
+                temperature: config?.temperature || 0.7,
+            };
+            if (config?.responseMimeType === "application/json") {
+                groqBody.response_format = { type: "json_object" };
+            }
+
+            const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${groqKey}`
+                },
+                body: JSON.stringify(groqBody)
+            });
+
+            if (!groqRes.ok) {
+                const text = await groqRes.text();
+                throw new Error(`Groq API Error: ${groqRes.status} - ${text}`);
+            }
+
+            const groqData = await groqRes.json();
+            return groqData.choices[0].message.content;
+
+        } catch (error) {
+            console.error("Groq fallback failed:", error.message);
+            lastError = error;
+        }
+    }
+
+    // 3. Fallback to Freemodel API (with retry)
     const freemodelKey = process.env.FREEMODEL_API_KEY;
     if (freemodelKey) {
         console.log("Falling back to Freemodel API...");
